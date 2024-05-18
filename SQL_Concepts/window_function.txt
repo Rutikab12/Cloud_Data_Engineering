@@ -1,0 +1,239 @@
+Window Functions in SQL
+
+eg: find the max salary in department
+
+select e.*,
+max(salary) over() as max_salary
+from employee e;
+
+--using over() sql treat it as window function, it is used to specify sql that it needs to create window
+
+eg: find the maz salary in each department
+select e.*,
+max(salary) over(partition by dept_name) as max_salary
+from employee e;
+
+--here partition by clause will help in seggregrating records based on department
+
+-------------------------------------------------------------------------
+Row Number()
+
+--gives unique integer number to each row and if it is grouped using partition or cluster it gives unique number to that particular window.
+
+select e.*,
+row_number() over as rn
+from employee e;
+
+eg: fetch the first 2 employees from each department to join the company
+
+select * from (
+	select e.*,
+	row_number() over(partition by dept_name order by emp_id) as rn
+	from employee e) x
+where x.rn < 3;
+
+--the subquery will give all the records in table and hence we have put filter using subquery to get only first 2 employees.
+
+-------------------------------------------------------------------------
+Rank()
+
+--gives rank , that is a number to each row,  if it contains duplicate or identical data in the same column then the rank() will be same for both, immediate number is skipped and next one gets another number as rank.
+
+for eg: 
+salary	Rank
+4000	1
+4000	1
+5000	3
+6000	4
+
+eg: fetch the top 3 employees in each department earning the max salary
+
+select * from(
+	select e.* 
+	rank() over(partition by dept_name order by salary desc) as rnk
+	from employee e) x
+where x.rnk < 4;
+
+------------------------------------------------------------------------
+Dense Rank()
+
+--here dislike rank , immediate number is not skipped while giving the rank, though having identical or duplicate value.
+
+eg:
+select e.* 
+dense_rank() over(partition by dept_name order by salary desc) as dense_rnk
+from employee e);
+
+------------------------------------------------------------------------
+Lead() and Lag()
+
+lag()-- it checks the previous records for scanning
+lead()-- it checks the next records for scanning
+
+eg: fecth a query to display if the salary of an employee is higher, lower or equal to the previous employee.
+
+select e.*,
+lag(salary,2,0) over(partition by dept_name order by emp_id) as prev_Emp_salary --2 means prev 2 records, if not found put 0 in o/p
+lead(salary) over(partition by dept_name order by emp_id) as next_Emp_salary
+from employee e;
+
+improved query
+
+select e.*,
+lag(salary) over(partition by dept_name order by emp_id) as prev_emp_salary,
+case when e.salary > lag(salary) over (partition by dept_name order_by emp_id) then 'Higher than previous employee'
+when e.salary < lag(salary) over (partition by dept_name order_by emp_id) then 'Lower than previous employee'
+when e.salary = lag(salary) over (partition by dept_name order_by emp_id) then 'Lower than previous employee'
+end sal_range
+from employee e;
+
+-------------------------------------------------------------------------
+first_value function
+
+can be used to extract the first column value from very first record within partition
+
+eg:query to display the most expensive product under each category(corresponding to each record)
+
+select *, first_value(product_name) over(partition by product_Category order by price desc) as most_expensive_product
+from product;
+
+-------------------------------------------------------------------------
+last_value function
+
+can be used to extract the last column value from very last record within partition
+
+eg:query to display the least expensive product under each category(corresponding to each record)
+
+select *, last_value(product_name) over(partition by product_Category order by price desc) as least_expensive_product
+from product;
+
+this result didn't give us least priced product, instead it give mix up of all less price products in least_expensive_product column
+
+hence to solve this we can use frames
+
+-------------------------------------------------------------------------
+frames clause()
+
+frames are the subset of partitions
+
+window function creates partitions of data and applies within whole table, in it we can create subset of records of that partition, called as frames
+
+default frame in sql:
+range between unbounded preceding and current row
+
+explanation : above statement
+range - given range of partition
+unbounded_predecing - no of rows preceding the current row
+current_row - present row at which one is pointing
+
+hence what this default frames does is,
+it checks range of partition , then go to the row of partition, check preceding rows if it is none then take current row as last_value(),
+otherwise if rows are preceded by one or more rows, suppose 2 rows then it consider partition of two rows and consider 2nd row as last record and display it as last_value. (row by row prcoess)
+
+eg:query to display the least expensive product under each category(corresponding to each record)
+
+select *, 
+last_value(product_name) over(partition by product_Category order by price desc range between unbounded preceding and unbounded following) as least_expensive_product
+from product;
+
+we can use rows instead of range , but it depends on duplicate records scenarios ,etc
+
+rows -- will stick to current_row
+range -- will cover whole range of partition with duplicates also
+
+eg of frames:
+
+range between unbounded preceding and current row, unbounded following
+rows between unbounded preceding and unbounded following, current row
+range between 2 preceding and 2 following
+
+-------------------------------------------------------------------------
+Another way of writing window function
+
+just use it before order by clause.
+
+select *, 
+last_value(product_name) 
+over w 
+as least_expensive_product
+from product
+window w as (partition by product_Category order by price desc range between unbounded preceding and unbounded following);
+
+-------------------------------------------------------------------------
+Nth Value
+
+this can be used to find any value at any position
+
+eg:write a query to display second most expensive product under each category
+
+select *, 
+first_value(product_name) over w as most_expensive_product,
+last_value(product_name) over w as least_expensive_product,
+nth_value(product_name,2) over w as second_most_expensive
+from product
+window w as (partition by product_Category order by price desc range between unbounded preceding and unbounded following);
+
+nth_value(product_name,2) -- indicates column u want to display and position number of that record you want to display.
+and it is also important for nth_value to declare right frame clause
+
+-------------------------------------------------------------------------
+Nth Tile
+
+used to group together a set of data in partition and then place it some bucket
+sql will make sure that each bucket in partition must have same no of records
+
+eg: write a query to segregate all the expensive phones, mid_range phones and cheaper phones.
+
+select *,
+ntile(3) over(order by price desc) as buckets
+from product
+where product_category='phones';
+
+--improved version
+select product_name,
+	case when x.buckets = 1 then 'Expensive'
+	case when x.buckets = 2 then 'Mid Range'
+	case when x.buckets = 3 then 'Cheaper'
+	end phone_category
+from (
+	ntile(3) over(order by price desc) as buckets
+	from product
+	where product_category='phones');
+	
+-------------------------------------------------------------------------
+CUME_DIST (Cummlative Distribution)
+
+used to identify distribution of each record within a resultset
+always give result in 0 and 1.
+it don't accept any argument.
+
+how it calculates the percentage:
+formula: Current Row no (or row no with value same as current row) / Total no of rows
+
+eg:query to fecth all products which are constituing the first 30% of data in products table based on price
+
+select product_name,(cume_dist_percentage||'%') as cume_dist_percent
+from(
+	select *,
+	cume_dist() over (order by price desc) as cume_distribution,
+	round(cume_dist() over (order by price desc)::numeric * 100,2) as cume_dist_percentage
+	from product) as x
+where x.cume_dist_percent <=30;
+
+-------------------------------------------------------------------------
+percent rank
+
+used to provides relative rank to each row in form of percentage
+almost separate to cum_dist but formula is different
+
+formula : Current row no - 1 / Total no of rows - 1
+
+eg:query to identify how much percentage more expensive is 'galaxy z fold 3' when compared to all products.
+
+select product_name,per_rank
+from(
+	select *,
+	percent_rank() over(order by price) as percentage_rank
+	round(percent_rank() over(order by price)::numeric * 100,2) as per_rank
+	from product) x
+where x.product_name='galaxy z fold 3';
