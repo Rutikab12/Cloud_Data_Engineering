@@ -474,3 +474,51 @@ select *,last_value(emp_name) over(partition by dept_id order by emp_age) as you
 select *,last_value(emp_name) over(order by emp_age rows between current row and unbounded following) as youngest_employee from cricket_dataset.employee
 --another way by reversing the sorting
 select *,first_value(emp_name) over(partition by dept_id order by emp_age desc) as youngest_employee from cricket_dataset.employee
+-------------------------------------------------------------------------------------------------------------------------------
+--PWC interview problem, if name is same exclude that record from output
+
+create table cricket_dataset.source(id int64, name string);
+
+create table cricket_dataset.target(id int64, name string);
+
+insert into cricket_dataset.source values(1,'A'),(2,'B'),(3,'C'),(4,'D');
+
+insert into cricket_dataset.target values(1,'A'),(2,'B'),(4,'X'),(5,'F');
+
+
+select * from cricket_dataset.source
+select * from cricket_dataset.target
+
+--using full outer join
+--appraoch is doing full join,filtering data on null and not null condition and then use case when to get the required columns and its values
+select coalesce(s.id,t.id)as id,s.name,t.name,
+case when t.name is null then 'new in source' when s.name is null then 'new in target'
+else 'mismatch'
+end as comment
+from cricket_dataset.source s
+full join cricket_dataset.target t on s.id=t.id
+where s.name != t.name or s.name is null or t.name is null
+
+--using union all
+with cte as (
+select *,'source' as table_name from cricket_dataset.source
+union all
+select *,'target' as table_name from cricket_dataset.target
+)
+select id,
+case when min(name)!=max(name) then 'mismatch'
+when min(table_name)='source' then 'new in source'
+else 'new in target'
+end as comment
+from cte
+group by id
+having count(*)=1 or (count(*)=2 and min(name) != max(name))
+--count(*),min(name)as min_name,max(name) as max_name,min(table_name) as table_name_min,max(table_name) as table_name_max,
+-----------------------------------------------------------------------------------------------------------------------------
+--Order of execution SQL
+
+eg: select * from emp where='condition' order by 'condition' limit 5;
+
+from-->first   second-->join    third-->where   -->group by    -->having    fourth-->select
+fifth-->order by    sixth-->limit
+------------------------------------------------------------------------------------------------------------------------------
