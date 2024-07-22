@@ -522,3 +522,48 @@ eg: select * from emp where='condition' order by 'condition' limit 5;
 from-->first   second-->join    third-->where   -->group by    -->having    fourth-->select
 fifth-->order by    sixth-->limit
 ------------------------------------------------------------------------------------------------------------------------------
+--Top 5 advanced SQL interview problems
+
+select * from `cricket_dataset.employee`
+
+--que_type : top 3 products by sales, top 3 employees by salaries,within dept
+
+--1. top 2 highest salaried employees
+    --rn<2 meaning highest salary in each dept
+    --in case of same salary, use dense_rank or ask interviewer
+select * from(
+select *,
+row_number() over(partition by dept_id order by salary desc) as rn,
+dense_rank() over(partition by dept_id order by salary desc) as rn_dense
+from cricket_dataset.employee)a
+where rn_dense<=2
+
+--basic approach
+select * from cricket_dataset.employee
+order by dept_id,salary desc limit 2
+
+
+--2. top 5 products by sales
+with cte as(
+  select product_id,sum(sales) as sales
+  from orders
+  group by product_id
+)
+select product_id,cte.sales
+from cte
+order by sales desc limit 5
+
+--3. top 5 products by sales and cateory
+with cte as(
+  select category,product_id,sum(sales) as sales
+  from orders
+  group by category,product_id
+)
+select * from(
+  select *,
+  row_number() over(partition by category order by sales desc) as rn
+  from cte
+)a
+where rn<=5
+from cte
+-------------------------------------------------------------------------------------------------------------------------
