@@ -567,3 +567,157 @@ select * from(
 where rn<=5
 from cte
 -------------------------------------------------------------------------------------------------------------------------
+--select only those records which do not have email_id in largecase, duplicates allowed
+
+CREATE TABLE cricket_dataset.accenture_emp  (employee_id int64,employee_name string, email_id string );
+
+select * from cricket_dataset.accenture_emp;
+
+INSERT INTO cricket_dataset.accenture_emp (employee_id,employee_name, email_id) VALUES (101,'Liam Alton', 'li.al@abc.com');
+INSERT INTO cricket_dataset.accenture_emp (employee_id,employee_name, email_id) VALUES (102,'Josh Day', 'jo.da@abc.com');
+INSERT INTO cricket_dataset.accenture_emp (employee_id,employee_name, email_id) VALUES (103,'Sean Mann', 'se.ma@abc.com'); 
+INSERT INTO cricket_dataset.accenture_emp (employee_id,employee_name, email_id) VALUES (104,'Evan Blake', 'ev.bl@abc.com');
+INSERT INTO cricket_dataset.accenture_emp (employee_id,employee_name, email_id) VALUES (105,'Toby Scott', 'jo.da@abc.com');
+INSERT INTO cricket_dataset.accenture_emp (employee_id,employee_name, email_id) VALUES (106,'Anjali Chouhan', 'JO.DA@ABC.COM');
+INSERT INTO cricket_dataset.accenture_emp (employee_id,employee_name, email_id) VALUES (107,'Ankit Bansal', 'AN.BA@ABC.COM');
+
+--appraoch is using ascii value
+
+with cte as(
+  select *,ascii(email_id) as ascii_email_code,
+  rank() over(partition by email_id order by ascii(email_id) desc) as rn
+  from cricket_dataset.accenture_emp
+)
+select * from cte where rn=1
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- find player with no of gold medals won by them only for players who won only gold medals.
+
+CREATE TABLE cricket_dataset.events (
+ID int64,
+event string,
+YEAR Int64,
+GOLD string,
+SILVER string,
+BRONZE string
+);
+
+INSERT INTO cricket_dataset.events VALUES (1,'100m',2016, 'Amthhew Mcgarray','donald','barbara');
+INSERT INTO cricket_dataset.events VALUES (2,'200m',2016, 'Nichole','Alvaro Eaton','janet Smith');
+INSERT INTO cricket_dataset.events VALUES (3,'500m',2016, 'Charles','Nichole','Susana');
+INSERT INTO cricket_dataset.events VALUES (4,'100m',2016, 'Ronald','maria','paula');
+INSERT INTO cricket_dataset.events VALUES (5,'200m',2016, 'Alfred','carol','Steven');
+INSERT INTO cricket_dataset.events VALUES (6,'500m',2016, 'Nichole','Alfred','Brandon');
+INSERT INTO cricket_dataset.events VALUES (7,'100m',2016, 'Charles','Dennis','Susana');
+INSERT INTO cricket_dataset.events VALUES (8,'200m',2016, 'Thomas','Dawn','catherine');
+INSERT INTO cricket_dataset.events VALUES (9,'500m',2016, 'Thomas','Dennis','paula');
+INSERT INTO cricket_dataset.events VALUES (10,'100m',2016, 'Charles','Dennis','Susana');
+INSERT INTO cricket_dataset.events VALUES (11,'200m',2016, 'jessica','Donald','Stefeney');
+INSERT INTO cricket_dataset.events VALUES (12,'500m',2016,'Thomas','Steven','Catherine');
+
+
+select * from cricket_dataset.events
+
+
+--appraoch one using not in and union all
+select GOLD as player_name,count(1) as cnt from cricket_dataset.events
+where GOLD not in(select silver from cricket_dataset.events union all select BRONZE from cricket_dataset.events)
+group by 1
+
+--appraoch two using cte and count technique
+with cte as(
+select GOLD as player_name,'gold' as medal_type from cricket_dataset.events
+union all select SILVER,'silver' as medal_type from cricket_dataset.events
+union all select BRONZE,'bronze' as medal_type from cricket_dataset.events
+)
+select player_name,count(1) as no_of_gold_medal
+from cte
+group by player_name
+having count(distinct medal_type)=1 and max(medal_type='gold')
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--find employees whos salary is same in same department
+CREATE TABLE cricket_dataset.emp_salary
+(
+  emp_id INT64  NOT NULL,
+  name string  NOT NULL,
+  salary string,
+  dept_id INT64
+);
+
+INSERT INTO cricket_dataset.emp_salary
+(emp_id, name, salary, dept_id)
+VALUES(101, 'sohan', '3000', 11),
+(102, 'rohan', '4000', 12),
+(103, 'mohan', '5000', 13),
+(104, 'cat', '3000', 11),
+(105, 'suresh', '4000',12),
+(109, 'mahesh', '7000',12),
+(108, 'kamal', '8000',11);
+
+select * from cricket_dataset.emp_salary
+
+--using inner join
+--take out records that are duplicates or have same value
+with cte as(
+select dept_id,salary from cricket_dataset.emp_salary
+group by dept_id,salary
+having count(1)>1
+)
+select a.* from cricket_dataset.emp_salary a
+inner join cte b
+on a.dept_id=b.dept_id and a.salary=b.salary
+
+
+--using left join
+--fetching unmatched records first and then using left join take only from left table
+with cte as(
+select dept_id,salary from cricket_dataset.emp_salary
+group by dept_id,salary
+having count(1)=1
+)
+select a.*,b.* from cricket_dataset.emp_salary a
+left join cte b
+on a.dept_id=b.dept_id and a.salary=b.salary
+where b.dept_id is null
+
+--user apparoch
+select a.emp_id,a.name,a.salary,a.dept_id from cricket_dataset.emp_salary a 
+inner join cricket_dataset.emp_salary b 
+on a.dept_id=b.dept_id and a.emp_id<>b.emp_id 
+where a.salary=b.salary
+order by a.dept_id
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--most asked join problem, find the maximum and minimum no of records if one table have 5 records and other one have 10 records
+
+--first condition maximum records
+table-1			table-2
+1				1
+1				1
+1				1
+1				1
+1				1
+				1
+				1
+				1
+				1
+				1
+				
+inner,left,right,full join -->50 records
+
+--second condition minimum records
+table-1			table-2
+1				2
+1				2
+1				2
+1				2
+1				2
+				2
+				2
+				2
+				2
+				2
+				
+inner -- 0 records
+left -- 5 records
+right -- 10 records
+full -- 15 record
