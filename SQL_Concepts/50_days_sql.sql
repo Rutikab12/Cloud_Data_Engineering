@@ -544,3 +544,344 @@ inner join cricket_dataset.employees e2
 on e1.manager_id = e2.emp_id;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Find the top 2 customers who have spent the most money across all their orders. 
+--Return their names, emails, and total amounts spent.
+
+DROP TABLE IF EXISTS cricket_dataset.customers;
+CREATE TABLE cricket_dataset.customers (
+   customer_id INT64,
+    customer_name string,
+    customer_email string
+);
+
+
+DROP TABLE IF EXISTS cricket_dataset.orders;
+CREATE TABLE cricket_dataset.orders (
+    order_id INT64,
+    customer_id INT64,
+    order_date DATE,
+    order_amount float64
+);
+
+
+INSERT INTO cricket_dataset.customers (customer_id, customer_name, customer_email) VALUES
+(1, 'John Doe', 'john@example.com'),
+(2, 'Jane Smith', 'jane@example.com'),
+(3, 'Alice Johnson', 'alice@example.com'),
+(4, 'Bob Brown', 'bob@example.com');
+
+INSERT INTO cricket_dataset.orders (order_id, customer_id, order_date, order_amount) VALUES
+(1, 1, '2024-01-03', 50.00),
+(2, 2, '2024-01-05', 75.00),
+(3, 1, '2024-01-10', 25.00),
+(4, 3, '2024-01-15', 60.00),
+(5, 2, '2024-01-20', 50.00),
+(6, 1, '2024-02-01', 100.00),
+(7, 2, '2024-02-05', 25.00),
+(8, 3, '2024-02-10', 90.00),
+(9, 1, '2024-02-15', 50.00),
+(10, 2, '2024-02-20', 75.00);
+
+select * from cricket_dataset.orders;
+
+select * from cricket_dataset.customers;
+
+--take sum of order_amount and do left join and group by and order by total_spend.
+select c.customer_id,c.customer_name,c.customer_email,sum(o.order_amount) as total_spend
+from cricket_dataset.customers c
+left join cricket_dataset.orders o
+on c.customer_id=o.customer_id
+group by 1,2,3
+order by total_spend desc
+limit 2
+
+-- customers details who has placed highest orders and total count of orders and total order amount
+select c.customer_id,c.customer_name,c.customer_email,sum(o.order_amount) as total_spend,count(o.order_id) as no_of_orders
+from cricket_dataset.customers c
+left join cricket_dataset.orders o
+on c.customer_id=o.customer_id
+group by 1,2,3
+order by no_of_orders desc
+limit 2
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Write an SQL query to retrieve the product details for items whose revenue 
+--decreased compared to the previous month. 
+
+DROP TABLE IF EXISTS cricket_dataset.orders;
+CREATE TABLE cricket_dataset.orders (
+    order_id int64,
+    order_date DATE,
+    product_id INT64,
+    quantity INT64,
+    price float64
+);
+
+-- Inserting records for the current month
+INSERT INTO cricket_dataset.orders (order_id,order_date, product_id, quantity, price) VALUES
+    (1,'2024-07-01', 1, 10, 50.00),
+    (2,'2024-07-02', 2, 8, 40.00),
+    (3,'2024-07-03', 3, 15, 30.00),
+    (4,'2024-07-04', 4, 12, 25.00),
+    (5,'2024-07-05', 5, 5, 60.00),
+    (6,'2024-07-06', 6, 20, 20.00),
+    (7,'2024-07-07', 7, 18, 35.00),
+    (8,'2024-07-08', 8, 14, 45.00),
+    (9,'2024-07-09', 1, 10, 50.00),
+    (10,'2024-07-10', 2, 8, 40.00);
+
+-- Inserting records for the last month
+INSERT INTO cricket_dataset.orders (order_id,order_date, product_id, quantity, price) VALUES
+    (11,'2024-06-01', 1, 12, 50.00),
+    (12,'2024-06-02', 2, 10, 40.00),
+    (13,'2024-06-03', 3, 18, 30.00),
+    (14,'2024-06-04', 4, 14, 25.00),
+    (15,'2024-06-05', 5, 7, 60.00),
+    (16,'2024-06-06', 6, 22, 20.00),
+    (17,'2024-06-07', 7, 20, 35.00),
+    (18,'2024-06-08', 8, 16, 45.00),
+    (19,'2024-06-09', 1, 12, 50.00),
+    (20,'2024-06-10', 2, 10, 40.00);
+
+-- Inserting records for the previous month
+INSERT INTO cricket_dataset.orders (order_id,order_date, product_id, quantity, price) VALUES
+    (21,'2024-05-01', 1, 15, 50.00),
+    (22,'2024-05-02', 2, 12, 40.00),
+    (23,'2024-05-03', 3, 20, 30.00),
+    (24,'2024-05-04', 4, 16, 25.00),
+    (25,'2024-05-05', 5, 9, 60.00),
+    (26,'2024-05-06', 6, 25, 20.00),
+    (27,'2024-05-07', 7, 22, 35.00),
+    (28,'2024-05-08', 8, 18, 45.00),
+    (29,'2024-05-09', 1, 15, 50.00),
+    (30,'2024-05-10', 2, 12, 40.00);
+
+select * from cricket_dataset.orders;
+
+--first find total sales with respect to current_month
+--then find total sales with repsect to previous month
+--do inner join of both
+--apply condition where revenue has decreased of current_month product_ids
+with current_month_cte as(
+select product_id,sum(price*quantity) as curr_total_sales,sum(quantity) as curr_total_quantity
+from `cricket_dataset.orders`
+where extract(Month from order_date) = extract(Month from current_date)
+group by product_id),
+previous_month_cte as(
+select product_id,sum(price*quantity) as prev_total_sales,sum(quantity) as prev_total_quantity
+from `cricket_dataset.orders`
+where extract(Month from order_date) = extract(Month from current_date)-1
+group by product_id
+)
+select c.product_id,
+c.curr_total_quantity,c.curr_total_sales,p.prev_total_quantity,p.prev_total_sales
+from current_month_cte c
+join previous_month_cte p
+on c.product_id=p.product_id
+where c.curr_total_sales < p.prev_total_sales
+
+
+--SQL query to find the products whose total revenue has decreased by more than 10% from the previous month to the current month.
+with current_month_cte as(
+select product_id,sum(price*quantity) as curr_total_sales,sum(quantity) as curr_total_quantity
+from `cricket_dataset.orders`
+where extract(Month from order_date) = extract(Month from current_date)
+group by product_id),
+previous_month_cte as(
+select product_id,sum(price*quantity) as prev_total_sales,sum(quantity) as prev_total_quantity
+from `cricket_dataset.orders`
+where extract(Month from order_date) = extract(Month from current_date)-1
+group by product_id
+)
+select c.product_id,
+c.curr_total_quantity,c.curr_total_sales,p.prev_total_quantity,p.prev_total_sales,round((p.prev_total_sales-c.curr_total_sales)*100.00/p.prev_total_sales,2) as perc_dec
+from current_month_cte c
+join previous_month_cte p
+on c.product_id=p.product_id
+where c.curr_total_sales < p.prev_total_sales
+and (p.prev_total_sales-c.curr_total_sales)*100.00/p.prev_total_sales > 10
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Write a SQL query to find the names of managers who have at least five direct reports. Return the result table in any order.
+
+DROP TABLE IF EXISTS cricket_dataset.employees;
+CREATE TABLE cricket_dataset.employees (
+    id INT64,
+    name string,
+    department string,
+    managerId INT64
+);
+
+INSERT INTO cricket_dataset.employees (id, name, department, managerId) VALUES
+(101, 'John', 'A', NULL),
+(102, 'Dan', 'A', 101),
+(103, 'James', 'A', 101),
+(104, 'Amy', 'A', 101),
+(105, 'Anne', 'A', 101),
+(106, 'Ron', 'B', 101),
+(107, 'Michael', 'C', NULL),
+(108, 'Sarah', 'C', 107),
+(109, 'Emily', 'C', 107),
+(110, 'Brian', 'C', 107);
+--first find manager_name based on managerId, then count of emp reporting to that Id, do self join and add condition count<=5
+--do self join
+select e1.managerId,e2.name as manager_name,count(e1.id) as total_count
+from cricket_dataset.employees e1
+join cricket_dataset.employees e2
+on e1.managerId=e2.id
+GROUP BY e1.managerId, e2.name
+HAVING COUNT(e1.id) >= 5;
+
+--total count of employees who don't have managers
+select count(name) as names from cricket_dataset.employees
+where managerid is null;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--find customers who have made purchases in all product categories.
+
+DROP TABLE IF EXISTS cricket_dataset.customers;
+-- Creating the Customers table
+CREATE TABLE cricket_dataset.customers (
+    customer_id INT64,
+    customer_name string
+);
+
+
+DROP TABLE IF EXISTS cricket_dataset.purchases;
+-- Creating the Purchases table
+CREATE TABLE cricket_dataset.purchases (
+    purchase_id INT64,
+    customer_id INT64,
+    product_category string,
+);
+
+-- Inserting sample data into Customers table
+INSERT INTO cricket_dataset.customers (customer_id, customer_name) VALUES
+    (1, 'Alice'),
+    (2, 'Bob'),
+    (3, 'Charlie'),
+    (4, 'David'),
+    (5, 'Emma');
+
+-- Inserting sample data into Purchases table
+INSERT INTO cricket_dataset.purchases (purchase_id, customer_id, product_category) VALUES
+    (101, 1, 'Electronics'),
+    (102, 1, 'Books'),
+    (103, 1, 'Clothing'),
+    (104, 1, 'Electronics'),
+    (105, 2, 'Clothing'),
+    (106, 1, 'Beauty'),
+    (107, 3, 'Electronics'),
+    (108, 3, 'Books'),
+    (109, 4, 'Books'),
+    (110, 4, 'Clothing'),
+    (111, 4, 'Beauty'),
+    (112, 5, 'Electronics'),
+    (113, 5, 'Books');
+
+-- cx_id, cx_name
+-- find total distinct category 
+-- how many distinct category each cx purchase from 
+-- join both
+--having clause will give us customer who have bought all 4 categories products
+
+select c.customer_id,c.customer_name,count(distinct p.product_category) as total_cnt,
+from cricket_dataset.customers c
+join `cricket_dataset.purchases` p
+on c.customer_id=p.customer_id
+group by 1,2
+having count(distinct p.product_category)=(select count(distinct product_category) from `cricket_dataset.purchases`)
+
+
+--find customers who have not made any purchase in electronics category
+select c.customer_id,c.customer_name,p.product_category,count(c.customer_id) as total_cnt from `cricket_dataset.customers` c
+join `cricket_dataset.purchases` p
+on c.customer_id = p.customer_id
+where c.customer_id not in (SELECT distinct customer_id FROM `cricket_dataset.purchases` WHERE product_category like '%Electronics%')
+group by c.customer_name,c.customer_id,p.product_category
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Write a SQL query to find out each hotal best performing months based on revenue 
+
+CREATE TABLE hotel_bookings (
+    booking_id int64,
+    booking_date DATE,
+    hotel_name string,
+    total_guests INT64,
+    total_nights INT64,
+    total_price float64
+);
+
+-- Inserting sample data for hotel bookings for 2023 and 2022
+INSERT INTO hotel_bookings (booking_id,booking_date, hotel_name, total_guests, total_nights, total_price) VALUES
+    (1,'2023-01-05', 'Hotel A', 2, 3, 300.00),
+    (2,'2023-02-10', 'Hotel B', 3, 5, 600.00),
+    (3,'2023-03-15', 'Hotel A', 4, 2, 400.00),
+    (4,'2023-04-20', 'Hotel B', 2, 4, 500.00),
+    (5,'2023-05-25', 'Hotel A', 3, 3, 450.00),
+    (6,'2023-06-30', 'Hotel B', 5, 2, 350.00),
+    (7,'2023-07-05', 'Hotel A', 2, 5, 550.00),
+    (8,'2023-08-10', 'Hotel B', 3, 3, 450.00),
+    (9,'2023-09-15', 'Hotel A', 4, 4, 500.00),
+    (10,'2023-10-20', 'Hotel B', 2, 3, 300.00),
+    (11,'2023-11-25', 'Hotel A', 3, 2, 350.00),
+    (12,'2023-12-30', 'Hotel B', 5, 4, 600.00),
+    (13,'2022-01-05', 'Hotel A', 2, 3, 300.00),
+    (14,'2022-02-10', 'Hotel B', 3, 5, 600.00),
+    (15,'2022-03-15', 'Hotel A', 4, 2, 400.00),
+    (16,'2022-04-20', 'Hotel B', 2, 4, 500.00),
+    (17,'2022-05-25', 'Hotel A', 3, 3, 450.00),
+    (18,'2022-06-30', 'Hotel B', 5, 2, 350.00),
+    (19,'2022-07-05', 'Hotel A', 2, 5, 550.00),
+    (20,'2022-08-10', 'Hotel B', 3, 3, 450.00),
+    (21,'2022-09-15', 'Hotel A', 4, 4, 500.00),
+    (22,'2022-10-20', 'Hotel B', 2, 3, 300.00),
+    (23,'2022-11-25', 'Hotel A', 3, 2, 350.00),
+    (24,'2022-12-30', 'Hotel B', 5, 4, 600.00);
+
+select * from cricket_dataset.hotel_bookings;
+
+
+--first take out month and year 
+--then take total sales of hotel
+--order by in desc
+with cte1 as(
+select extract(Month from booking_date) as month,extract(Year from booking_date) as year,hotel_name,sum(total_price) as total_rev
+from cricket_dataset.hotel_bookings
+group by 1,2,3
+order by total_rev desc,year asc),
+cte2 as(
+    select year,month,hotel_name,total_rev,
+    rank() over(partition by year,hotel_name order by total_rev desc) as rn
+    from cte1
+)
+select year ,month ,hotel_name,total_rev  from cte2 where rn=1 order by month asc ;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Find the details of employees whose salary is greater than the average salary across the entire company.
+
+DROP TABLE IF EXISTS cricket_dataset.employees;
+-- Creating the employees table
+CREATE TABLE cricket_dataset.employees (
+    employee_id int64,
+    employee_name string,
+    department string,
+    salary float64
+);
+
+INSERT INTO cricket_dataset.employees (employee_id,employee_name, department, salary) 
+VALUES
+    (1,'John Doe', 'HR', 50000.00),
+    (2,'Jane Smith', 'HR', 55000.00),
+    (3,'Michael Johnson', 'HR', 60000.00),
+    (4,'Emily Davis', 'IT', 60000.00),
+    (5,'David Brown', 'IT', 65000.00),
+    (6,'Sarah Wilson', 'Finance', 70000.00),
+    (7,'Robert Taylor', 'Finance', 75000.00),
+    (8,'Jennifer Martinez', 'Finance', 80000.00);
+
+select * from cricket_dataset.employees;
+
+--use avg() function
+select * from `cricket_dataset.employees` where salary > (select avg(salary) from `cricket_dataset.employees`)
+
+--Find the average salary of employees in each department, along with the total number of employees in that department.
+select department,avg(salary) as avg_salary, count(employee_name) as no_of_employees
+from `cricket_dataset.employees`
+group by department
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
