@@ -885,3 +885,344 @@ select department,avg(salary) as avg_salary, count(employee_name) as no_of_emplo
 from `cricket_dataset.employees`
 group by department
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--query to find products that are sold by both Supplier A and Supplier B, excluding products sold by only one supplier.
+
+DROP TABLE IF EXISTS cricket_dataset.products;
+CREATE TABLE cricket_dataset.products (
+    product_id INT64,
+    product_name string,
+    supplier_name string
+);
+
+INSERT INTO cricket_dataset.products (product_id, product_name, supplier_name) VALUES
+    (1, 'Product 1', 'Supplier A'),
+    (1, 'Product 1', 'Supplier B'),
+    (3, 'Product 3', 'Supplier A'),
+    (3, 'Product 3', 'Supplier A'),
+    (5, 'Product 5', 'Supplier A'),
+    (5, 'Product 5', 'Supplier B'),
+    (7, 'Product 7', 'Supplier C'),
+    (8, 'Product 8', 'Supplier A'),
+    (7, 'Product 7', 'Supplier B'),
+    (7, 'Product 7', 'Supplier A'),
+    (9, 'Product 9', 'Supplier B'),
+    (9, 'Product 9', 'Supplier C'),
+    (10, 'Product 10', 'Supplier C'),
+    (11, 'Product 11', 'Supplier C'),
+    (10, 'Product 10', 'Supplier A');
+
+select * from `cricket_dataset.products`
+
+--find the product and supplier 
+--then take count of suppliers group by id and name and where count=2
+
+select product_id,product_name,count(supplier_name) as total_suppliers  from cricket_dataset.products
+where supplier_name in ('Supplier A','Supplier B')
+group by product_id,product_name
+having count(distinct supplier_name)=2
+
+--Find the product that are selling by Supplier C and Supplier B but not Supplier A
+select product_id,product_name,count(*) from cricket_dataset.products
+where supplier_name in ('Supplier C','Supplier B')
+group by product_id,product_name
+having count(distinct supplier_name) =2
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Calculate the percentage contribution of each product to total revenue?
+DROP TABLE IF EXISTS cricket_dataset.products;
+-- Creating the products table
+CREATE TABLE cricket_dataset.products (
+    product_id INT64,
+    product_name string,
+    price float64,
+    quantity_sold INT64
+);
+
+-- Inserting sample data for products
+INSERT INTO cricket_dataset.products (product_id, product_name, price, quantity_sold) VALUES
+    (1, 'iPhone', 899.00, 600),
+    (2, 'iMac', 1299.00, 150),
+    (3, 'MacBook Pro', 1499.00, 500),
+    (4, 'AirPods', 499.00, 800),
+    (5, 'Accessories', 199.00, 300);
+
+--find total sale of each products , total revenue also
+select product_id,product_name,price*quantity_sold as sale_by_prod,
+round((price*quantity_sold/(select sum(price*quantity_sold) from cricket_dataset.products)),2)*100 as total_percentage
+from cricket_dataset.products
+
+
+--Find what is the contribution of MacBook Pro and iPhone Round the result in two DECIMAL
+select product_id,product_name,price*quantity_sold as sale_by_prod,
+round((price*quantity_sold/(select sum(price*quantity_sold) from cricket_dataset.products)),2)*100 as total_percentage
+from cricket_dataset.products
+where product_name in ('MacBook Pro','iPhone')
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*Question
+
+You have dataset of a food delivery company
+with columns order_id, customer_id, order_date, 
+pref_delivery_date
+
+If the customer's preferred delivery date is 
+the same as the order date, then the order is 
+called immediate; otherwise, it is called scheduled.
+
+Write a solution to find the percentage of immediate
+orders in the first orders of all customers, 
+rounded to 2 decimal places.*/
+
+DROP TABLE IF EXISTS cricket_dataset.delivery;
+-- Create the Delivery table
+CREATE TABLE cricket_dataset.delivery (
+    delivery_id int64,
+    customer_id INT64,
+    order_date DATE,
+    customer_pref_delivery_date DATE
+);
+
+-- Insert data into the Delivery table
+INSERT INTO cricket_dataset.delivery (delivery_id,customer_id, order_date, customer_pref_delivery_date) VALUES
+(1,1, '2019-08-01', '2019-08-02'),
+(2,2, '2019-08-02', '2019-08-02'),
+(3,1, '2019-08-11', '2019-08-12'),
+(4,3, '2019-08-24', '2019-08-24'),
+(5,3, '2019-08-21', '2019-08-22'),
+(6,2, '2019-08-11', '2019-08-13'),
+(7,4, '2019-08-09', '2019-08-09'),
+(8,5, '2019-08-09', '2019-08-10'),
+(9,4, '2019-08-10', '2019-08-12'),
+(10,6, '2019-08-09', '2019-08-11'),
+(11,7, '2019-08-12', '2019-08-13'),
+(12,8, '2019-08-13', '2019-08-13'),
+(13,9, '2019-08-11', '2019-08-12');
+
+--find first order for each cx
+--total count of first orders
+--set case as immediate or scheduled
+--total immediate orders/cnt of first orders *100 for percentage
+
+select *, 
+round(sum(case when order_date = first_orders.cpdd then 1 else 2 end as dd)/count(*)*100,2)
+from(
+select distinct customer_id,order_date,customer_pref_delivery_date as cpdd 
+from cricket_dataset.delivery
+order by customer_id,order_date) as first_orders
+
+/*
+Write an SQL query to determine the percentage of orders where customers select next day delivery. We're excited to see your solution! 
+-- Next Day Delivery is Order Date + 1
+*/
+select 
+	round(sum (case when next_day_od = cpdd then 1
+	else 0
+	end::numeric )/count(*)::numeric * 100 , 2) as nextday_del_percentage
+from
+    (select 
+        distinct on (customer_id)
+        customer_id,
+        order_date,
+        customer_pref_delivery_date as cpdd,
+        order_date + 1 as next_day_od
+        from cricket_dataset.delivery
+        order by customer_id,order_date
+    ) x
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/* Write a query that'll identify returning active users. 
+
+A returning active user is a user that has made a 
+second purchase within 7 days of their first purchase
+
+Output a list of user_ids of these returning active users. */
+
+DROP TABLE IF EXISTS cricket_dataset.amazon_transactions;
+CREATE TABLE cricket_dataset.amazon_transactions (
+    id int64,
+    user_id INT64,
+    item string,
+    purchase_date DATE,
+    revenue int64
+);
+
+INSERT INTO cricket_dataset.amazon_transactions (id,user_id, item, purchase_date, revenue) VALUES
+(1,109, 'milk', '2020-03-03', 123),
+(2,139, 'biscuit', '2020-03-18', 421),
+(3,120, 'milk', '2020-03-18', 176),
+(4,108, 'banana', '2020-03-18', 862),
+(5,130, 'milk', '2020-03-28', 333),
+(6,103, 'bread', '2020-03-29', 862),
+(7,122, 'banana', '2020-03-07', 952),
+(8,125, 'bread', '2020-03-13', 317),
+(9,139, 'bread', '2020-03-30', 929),
+(10,141, 'banana', '2020-03-17', 812),
+(11,116, 'bread', '2020-03-31', 226),
+(12,128, 'bread', '2020-03-04', 112),
+(13,146, 'biscuit', '2020-03-04', 362),
+(14,119, 'banana', '2020-03-28', 127),
+(15,142, 'bread', '2020-03-09', 503),
+(16,122, 'bread', '2020-03-06', 593),
+(17,128, 'biscuit', '2020-03-24', 160),
+(18,112, 'banana', '2020-03-24', 262),
+(19,149, 'banana', '2020-03-29', 382),
+(20,100, 'banana', '2020-03-18', 599),
+(21,130, 'milk', '2020-03-16', 604),
+(22,103, 'milk', '2020-03-31', 290),
+(23,112, 'banana', '2020-03-23', 523),
+(24,102, 'bread', '2020-03-25', 325),
+(25,120, 'biscuit', '2020-03-21', 858),
+(26,109, 'bread', '2020-03-22', 432),
+(27,101, 'milk', '2020-03-01', 449),
+(28,138, 'milk', '2020-03-19', 961),
+(29,100, 'milk', '2020-03-29', 410),
+(30,129, 'milk', '2020-03-02', 771),
+(31,123, 'milk', '2020-03-31', 434),
+(32,104, 'biscuit', '2020-03-31', 957),
+(33,110, 'bread', '2020-03-13', 210),
+(34,143, 'bread', '2020-03-27', 870),
+(35,130, 'milk', '2020-03-12', 176),
+(36,128, 'milk', '2020-03-28', 498),
+(37,133, 'banana', '2020-03-21', 837),
+(38,150, 'banana', '2020-03-20', 927),
+(39,120, 'milk', '2020-03-27', 793),
+(40,109, 'bread', '2020-03-02', 362),
+(41,110, 'bread', '2020-03-13', 262),
+(42,140, 'milk', '2020-03-09', 468),
+(43,112, 'banana', '2020-03-04', 381),
+(44,117, 'biscuit', '2020-03-19', 831),
+(45,137, 'banana', '2020-03-23', 490),
+(46,130, 'bread', '2020-03-09', 149),
+(47,133, 'bread', '2020-03-08', 658),
+(48,143, 'milk', '2020-03-11', 317),
+(49,111, 'biscuit', '2020-03-23', 204),
+(50,150, 'banana', '2020-03-04', 299),
+(51,131, 'bread', '2020-03-10', 155),
+(52,140, 'biscuit', '2020-03-17', 810),
+(53,147, 'banana', '2020-03-22', 702),
+(54,119, 'biscuit', '2020-03-15', 355),
+(55,116, 'milk', '2020-03-12', 468),
+(56,141, 'milk', '2020-03-14', 254),
+(57,143, 'bread', '2020-03-16', 647),
+(58,105, 'bread', '2020-03-21', 562),
+(59,149, 'biscuit', '2020-03-11', 827),
+(60,117, 'banana', '2020-03-22', 249),
+(61,150, 'banana', '2020-03-21', 450),
+(62,134, 'bread', '2020-03-08', 981),
+(63,133, 'banana', '2020-03-26', 353),
+(64,127, 'milk', '2020-03-27', 300),
+(65,101, 'milk', '2020-03-26', 740),
+(66,137, 'biscuit', '2020-03-12', 473),
+(67,113, 'biscuit', '2020-03-21', 278),
+(68,141, 'bread', '2020-03-21', 118),
+(69,112, 'biscuit', '2020-03-14', 334),
+(70,118, 'milk', '2020-03-30', 603),
+(71,111, 'milk', '2020-03-19', 205),
+(72,146, 'biscuit', '2020-03-13', 599),
+(73,148, 'banana', '2020-03-14', 530),
+(74,100, 'banana', '2020-03-13', 175),
+(75,105, 'banana', '2020-03-05', 815),
+(76,129, 'milk', '2020-03-02', 489),
+(77,121, 'milk', '2020-03-16', 476),
+(78,117, 'bread', '2020-03-11', 270),
+(79,133, 'milk', '2020-03-12', 446),
+(80,124, 'bread', '2020-03-31', 937),
+(81,145, 'bread', '2020-03-07', 821),
+(82,105, 'banana', '2020-03-09', 972),
+(83,131, 'milk', '2020-03-09', 808),
+(84,114, 'biscuit', '2020-03-31', 202),
+(85,120, 'milk', '2020-03-06', 898),
+(86,130, 'milk', '2020-03-06', 581),
+(87,141, 'biscuit', '2020-03-11', 749),
+(88,147, 'bread', '2020-03-14', 262),
+(89,118, 'milk', '2020-03-15', 735),
+(90,136, 'biscuit', '2020-03-22', 410),
+(91,132, 'bread', '2020-03-06', 161),
+(92,137, 'biscuit', '2020-03-31', 427),
+(93,107, 'bread', '2020-03-01', 701),
+(94,111, 'biscuit', '2020-03-18', 218),
+(95,100, 'bread', '2020-03-07', 410),
+(96,106, 'milk', '2020-03-21', 379),
+(97,114, 'banana', '2020-03-25', 705),
+(98,110, 'bread', '2020-03-27', 225),
+(99,130, 'milk', '2020-03-16', 494),
+(100,117, 'bread', '2020-03-10', 209);
+
+
+select * from `cricket_dataset.amazon_transactions`;
+
+--users first purchase then second purchase within >=7 days
+--join and then select distinct users
+
+select a1.user_id,a1.purchase_date as first_purchase_date,
+a2.purchase_date as second_purchase_date
+from cricket_dataset.amazon_transactions a1
+join cricket_dataset.amazon_transactions a2
+on a1.user_id=a2.user_id
+and a1.purchase_date < a2.purchase_date
+and date_diff(a2.purchase_date,a1.purchase_date,DAY) <=7
+order by 1
+
+--Find the user_id who has not purchased anything for 7 days after first purchase but they have done second purchase after 7 days 
+select distinct a1.user_id,a1.purchase_date as first_purchase_date,
+a2.purchase_date as second_purchase_date,date_diff(a2.purchase_date,a1.purchase_date,DAY) as diff
+from cricket_dataset.amazon_transactions a1
+join cricket_dataset.amazon_transactions a2
+on a1.user_id=a2.user_id
+and a1.purchase_date < a2.purchase_date
+and date_diff(a2.purchase_date,a1.purchase_date,DAY)>7
+order by 1
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*Calculate the total revenue from each customer in March 2019. 
+Include only customers who were active in March 2019.
+Output the revenue along with the customer id and sort the results based on the revenue in descending order.*/
+DROP TABLE IF EXISTS cricket_dataset.orders;
+
+CREATE TABLE cricket_dataset.orders (
+    id INT64,
+    cust_id INT64,
+    order_date DATE,
+    order_details string,
+    total_order_cost INT64
+);
+
+INSERT INTO cricket_dataset.orders (id, cust_id, order_date, order_details, total_order_cost) VALUES
+(1, 7, '2019-03-04', 'Coat', 100),
+(2, 7, '2019-03-01', 'Shoes', 80),
+(3, 3, '2019-03-07', 'Skirt', 30),
+(4, 7, '2019-02-01', 'Coat', 25),
+(5, 7, '2019-03-10', 'Shoes', 80),
+(6, 1, '2019-02-01', 'Boats', 100),
+(7, 2, '2019-01-11', 'Shirts', 60),
+(8, 1, '2019-03-11', 'Slipper', 20),
+(9, 15, '2019-03-01', 'Jeans', 80),
+(10, 15, '2019-03-09', 'Shirts', 50),
+(11, 5, '2019-02-01', 'Shoes', 80),
+(12, 12, '2019-01-11', 'Shirts', 60),
+(13, 1, '2019-03-11', 'Slipper', 20),
+(14, 4, '2019-02-01', 'Shoes', 80),
+(15, 4, '2019-01-11', 'Shirts', 60),
+(16, 3, '2019-04-19', 'Shirts', 50),
+(17, 7, '2019-04-19', 'Suit', 150),
+(18, 15, '2019-04-19', 'Skirt', 30),
+(19, 15, '2019-04-20', 'Dresses', 200),
+(20, 12, '2019-01-11', 'Coat', 125),
+(21, 7, '2019-04-01', 'Suit', 50),
+(22, 3, '2019-04-02', 'Skirt', 30),
+(23, 4, '2019-04-03', 'Dresses', 50),
+(24, 2, '2019-04-04', 'Coat', 25),
+(25, 7, '2019-04-19', 'Coat', 125);
+
+--find sum(total_order_cost) and customer_id
+--filter on march 19
+
+select cust_id,sum(total_order_cost) as total_revenue
+from cricket_dataset.orders
+where order_date between '2019-03-01' and '2019-03-30'
+order by 2 desc
+
+--Find the customers who purchased from both March and April of 2019 and their total revenue 
+SELECT cust_id, SUM(total_order_cost) AS total_revenue
+FROM cricket_dataset.orders
+where EXTRACT(year  from  order_date) = 2019
+and  EXTRACT( month from  order_date) in  (3, 4)
+group by cust_id
+having  count( distinct EXTRACT(MONTH FROM order_date)) = 2;
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
