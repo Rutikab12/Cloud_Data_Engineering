@@ -1628,3 +1628,525 @@ sum(case when payment_type = 'Cash' then 1 end) as total_bookings_by_cash
 from cricket_dataset.bookings
 group by hotel_name
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--We need to Find unique combination of records in output.
+--To solve this, we will write a query by using least, greatest and Rownumber() functions.
+
+CREATE TABLE cricket_dataset.routes (Origin string, Destination string);
+
+INSERT INTO cricket_dataset.routes VALUES 
+('Bangalore', 'Chennai'), 
+('Chennai', 'Bangalore'), 
+('Pune', 'Chennai'), 
+('Delhi', 'Pune');
+
+with cte as(select *,
+row_number() over(partition by least(Origin,Destination),greatest(Origin,Destination) order by Origin)as rn
+from cricket_dataset.routes)
+select Origin,Destination from cte where rn=1
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*You have amazon orders data For each week, find the total number of orders. Include only the orders that are from the first quarter of 2023.
+The output should contain 'week' and 'quantity'.*/
+
+DROP TABLE IF EXISTS cricket_dataset.orders;
+CREATE TABLE cricket_dataset.orders (
+    order_id INT64,
+    order_date DATE,
+    quantity INT64
+);
+
+
+INSERT INTO cricket_dataset.orders 
+(order_id, order_date, quantity) 
+VALUES
+(1, '2023-01-02', 5),
+(2, '2023-02-05', 3),
+(3, '2023-02-07', 2),
+(4, '2023-03-10', 6),
+(5, '2023-02-15', 4),
+(6, '2023-04-21', 8),
+(7, '2023-05-28', 7),
+(8, '2023-05-05', 3),
+(9, '2023-08-10', 5),
+(10, '2023-05-02', 6),
+(11, '2023-02-07', 4),
+(12, '2023-04-15', 9),
+(13, '2023-03-22', 7),
+(14, '2023-04-30', 8),
+(15, '2023-04-05', 6),
+(16, '2023-02-02', 6),
+(17, '2023-01-07', 4),
+(18, '2023-05-15', 9),
+(19, '2023-05-22', 7),
+(20, '2023-06-30', 8),
+(21, '2023-07-05', 6);
+
+--find week no from order date
+--sum(quantity) and whete order by quarter 2023
+--group by week
+
+select extract(WEEK from order_date) as week,
+sum(quantity) as total_quantity_sold
+from cricket_dataset.orders
+where extract(YEAR from order_date)=2023 and extract(QUARTER from order_date)=1
+group by week
+
+
+--find each quarter and their total quantity sales
+select extract(QUARTER from order_date) as Quarter_number,sum(quantity) as total_orders from cricket_dataset.orders
+group by extract(QUARTER from order_date)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+-- Top Monthly Sellers
+You are provided with a transactional dataset from Amazon that contains detailed information about sales across different products and marketplaces. 
+Your task is to list the top 3 sellers in each product category for January.
+The output should contain 'seller_id' , 'total_sales' ,'product_category' , 'market_place', and 'month'.
+*/
+
+CREATE TABLE cricket_dataset.sales_data (
+    seller_id string,
+    total_sales float64,
+    product_category string,
+    market_place string,
+    month DATE
+);
+
+
+
+INSERT INTO cricket_dataset.sales_data (seller_id, total_sales, product_category, market_place, month)
+VALUES
+('s236', 36486.73, 'electronics', 'in', DATE '2024-01-01'),
+('s918', 24286.4, 'books', 'uk', DATE '2024-01-01'),
+('s163', 18846.34, 'electronics', 'us', DATE '2024-01-01'),
+('s836', 35687.65, 'electronics', 'uk', DATE '2024-01-01'),
+('s790', 31050.13, 'clothing', 'in', DATE '2024-01-01'),
+('s195', 14299, 'books', 'de', DATE '2024-01-01'),
+('s483', 49361.62, 'clothing', 'uk', DATE '2024-01-01'),
+('s891', 48847.68, 'electronics', 'de', DATE '2024-01-01'),
+('s272', 11324.61, 'toys', 'us', DATE '2024-01-01'),
+('s712', 43739.86, 'toys', 'in', DATE '2024-01-01'),
+('s968', 36042.66, 'electronics', 'jp', DATE '2024-01-01'),
+('s728', 29158.51, 'books', 'us', DATE '2024-01-01'),
+('s415', 24593.5, 'electronics', 'uk', DATE '2024-01-01'),
+('s454', 35520.67, 'toys', 'in', DATE '2024-01-01'),
+('s560', 27320.16, 'electronics', 'jp', DATE '2024-01-01'),
+('s486', 37009.18, 'electronics', 'us', DATE '2024-01-01'),
+('s749', 36277.83, 'toys', 'de', DATE '2024-01-01'),
+('s798', 31162.45, 'electronics', 'in', DATE '2024-01-01'),
+('s515', 26372.16, 'toys', 'in', DATE '2024-01-01'),
+('s662', 22157.87, 'books', 'in', DATE '2024-01-01'),
+('s919', 24963.97, 'toys', 'de', DATE '2024-01-01'),
+('s863', 46652.67, 'electronics', 'us', DATE '2024-01-01'),
+('s375', 18107.08, 'clothing', 'de', DATE '2024-01-01'),
+('s583', 20268.34, 'toys', 'jp', DATE '2024-01-01'),
+('s778', 19962.89, 'electronics', 'in', DATE '2024-01-01'),
+('s694', 36519.05, 'electronics', 'in', DATE '2024-01-01'),
+('s214', 18948.55, 'electronics', 'de', DATE '2024-01-01'),
+('s830', 39169.01, 'toys', 'us', DATE '2024-01-01'),
+('s383', 12310.73, 'books', 'in', DATE '2024-01-01'),
+('s195', 45633.35, 'books', 'de', DATE '2024-01-01'),
+('s196', 13643.27, 'books', 'jp', DATE '2024-01-01'),
+('s796', 19637.44, 'electronics', 'jp', DATE '2024-01-01'),
+('s334', 11999.1, 'clothing', 'de', DATE '2024-01-01'),
+('s217', 23481.03, 'books', 'in', DATE '2024-01-01'),
+('s123', 36277.83, 'toys', 'uk', DATE '2024-01-01'),
+('s383', 17337.392, 'electronics', 'de', DATE '2024-02-01'),
+('s515', 13998.997, 'electronics', 'jp', DATE '2024-02-01'),
+('s583', 36035.539, 'books', 'jp', DATE '2024-02-01'),
+('s195', 18493.564, 'toys', 'de', DATE '2024-02-01'),
+('s728', 34466.126, 'electronics', 'de', DATE '2024-02-01'),
+('s830', 48950.221, 'electronics', 'us', DATE '2024-02-01'),
+('s483', 16820.965, 'electronics', 'uk', DATE '2024-02-01'),
+('s778', 48625.281, 'toys', 'in', DATE '2024-02-01'),
+('s918', 37369.321, 'clothing', 'de', DATE '2024-02-01'),
+('s123', 46372.816, 'electronics', 'uk', DATE '2024-02-01'),
+('s195', 18317.667, 'electronics', 'in', DATE '2024-02-01'),
+('s798', 41005.313, 'books', 'in', DATE '2024-02-01'),
+('s454', 39090.88, 'electronics', 'de', DATE '2024-02-01'),
+('s454', 17839.314, 'toys', 'us', DATE '2024-02-01'),
+('s798', 31587.685, 'toys', 'in', DATE '2024-02-01'),
+('s778', 21237.38, 'books', 'jp', DATE '2024-02-01'),
+('s236', 10625.456, 'toys', 'jp', DATE '2024-02-01'),
+('s236', 17948.627, 'toys', 'jp', DATE '2024-02-01'),
+('s749', 38453.678, 'toys', 'de', DATE '2024-02-01'),
+('s790', 47052.035, 'toys', 'uk', DATE '2024-02-01'),
+('s272', 34931.925, 'books', 'de', DATE '2024-02-01'),
+('s375', 36753.65, 'toys', 'us', DATE '2024-02-01'),
+('s214', 32449.737, 'toys', 'in', DATE '2024-02-01'),
+('s163', 40431.402, 'electronics', 'in', DATE '2024-02-01'),
+('s214', 30909.313, 'electronics', 'in', DATE '2024-02-01'),
+('s415', 18068.768, 'electronics', 'jp', DATE '2024-02-01'),
+('s836', 46302.659, 'clothing', 'jp', DATE '2024-02-01'),
+('s383', 19151.927, 'electronics', 'uk', DATE '2024-02-01'),
+('s863', 45218.714, 'books', 'us', DATE '2024-02-01'),
+('s830', 18737.617, 'books', 'de', DATE '2024-02-01'),
+('s968', 22973.801, 'toys', 'in', DATE '2024-02-01'),
+('s334', 20885.29, 'electronics', 'uk', DATE '2024-02-01'),
+('s163', 10278.085, 'electronics', 'de', DATE '2024-02-01'),
+('s272', 29393.199, 'clothing', 'jp', DATE '2024-02-01'),
+('s560', 16731.642, 'electronics', 'jp', DATE '2024-02-01'),
+('s583', 38120.758, 'books', 'uk', DATE '2024-03-01'),
+('s163', 22035.132, 'toys', 'uk', DATE '2024-03-01'),
+('s918', 26441.481, 'clothing', 'jp', DATE '2024-03-01'),
+('s334', 35374.054, 'books', 'in', DATE '2024-03-01'),
+('s796', 32115.724, 'electronics', 'jp', DATE '2024-03-01'),
+('s749', 39128.654, 'toys', 'in', DATE '2024-03-01'),
+('s217', 35341.188, 'electronics', 'us', DATE '2024-03-01'),
+('s334', 16028.702, 'books', 'us', DATE '2024-03-01'),
+('s383', 44334.352, 'toys', 'in', DATE '2024-03-01'),
+('s163', 42380.042, 'books', 'jp', DATE '2024-03-01'),
+('s483', 16974.657, 'clothing', 'in', DATE '2024-03-01'),
+('s236', 37027.605, 'electronics', 'de', DATE '2024-03-01'),
+('s196', 45093.574, 'toys', 'uk', DATE '2024-03-01'),
+('s486', 42688.888, 'books', 'in', DATE '2024-03-01'),
+('s728', 32331.738, 'electronics', 'us', DATE '2024-03-01'),
+('s123', 38014.313, 'electronics', 'us', DATE '2024-03-01'),
+('s662', 45483.457, 'clothing', 'jp', DATE '2024-03-01'),
+('s968', 47425.4, 'books', 'uk', DATE '2024-03-01'),
+('s778', 36540.071, 'books', 'in', DATE '2024-03-01'),
+('s798', 29424.55, 'toys', 'us', DATE '2024-03-01'),
+('s334', 10723.015, 'toys', 'de', DATE '2024-03-01'),
+('s662', 24658.751, 'electronics', 'uk', DATE '2024-03-01'),
+('s163', 36304.516, 'clothing', 'us', DATE '2024-03-01'),
+('s863', 20608.095, 'books', 'de', DATE '2024-03-01'),
+('s214', 27375.775, 'toys', 'de', DATE '2024-03-01'),
+('s334', 33076.155, 'clothing', 'in', DATE '2024-03-01'),
+('s515', 32880.168, 'toys', 'us', DATE '2024-03-01'),
+('s195', 48157.143, 'books', 'uk', DATE '2024-03-01'),
+('s583', 23230.012, 'books', 'uk', DATE '2024-03-01'),
+('s334', 13013.85, 'toys', 'jp', DATE '2024-03-01'),
+('s375', 20738.994, 'electronics', 'in', DATE '2024-03-01'),
+('s778', 25787.659, 'electronics', 'jp', DATE '2024-03-01'),
+('s796', 36845.741, 'clothing', 'uk', DATE '2024-03-01'),
+('s214', 21811.624, 'electronics', 'de', DATE '2024-03-01'),
+('s334', 15464.853, 'books', 'in', DATE '2024-03-01');
+
+--find total sales by seller_id
+--where month is JAN
+--select top2 sellers by each category
+
+with cte as(
+select product_category,
+seller_id,sum(total_sales) as sales,
+dense_rank() over(partition by product_category order by sum(total_sales) desc) as dr
+from cricket_dataset.sales_data
+where extract(MONTH from month)=1
+group by product_category,seller_id)
+select * from cte where dr<=3
+
+--Find out Each market place and their top 3 seller based on total sale
+WITH cte as(
+select product_category,
+seller_id,sum(total_sales) as sales,market_place,
+dense_rank() over(partition by market_place order by sum(total_sales) desc) as dr
+from cricket_dataset.sales_data
+where extract(MONTH from month)=1
+group by market_place,seller_id)
+select * from cte where dr<=3
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*Netflix Data Analyst Interview Question
+For each video, find how many unique users flagged it. A unique user can be identified using the combination of their first name and last name. 
+Do not consider rows in which there is no flag ID.
+*/
+
+-- Create the user_flags table
+CREATE TABLE cricket_dataset.user_flags (
+    user_firstname string,
+    user_lastname string,
+    video_id string,
+    flag_id string
+);
+
+-- Insert the provided records into the user_flags table
+INSERT INTO cricket_dataset.user_flags (user_firstname, user_lastname, video_id, flag_id) VALUES
+('Richard', 'Hasson', 'y6120QOlsfU', '0cazx3'),
+('Mark', 'May', 'Ct6BUPvE2sM', '1cn76u'),
+('Gina', 'Korman', 'dQw4w9WgXcQ', '1i43zk'),
+('Mark', 'May', 'Ct6BUPvE2sM', '1n0vef'),
+('Mark', 'May', 'jNQXAC9IVRw', '1sv6ib'),
+('Gina', 'Korman', 'dQw4w9WgXcQ', '20xekb'),
+('Mark', 'May', '5qap5aO4i9A', '4cvwuv'),
+('Daniel', 'Bell', '5qap5aO4i9A', '4sd6dv'),
+('Richard', 'Hasson', 'y6120QOlsfU', '6jjkvn'),
+('Pauline', 'Wilks', 'jNQXAC9IVRw', '7ks264'),
+('Courtney', '', 'dQw4w9WgXcQ', NULL),
+('Helen', 'Hearn', 'dQw4w9WgXcQ', '8946nx'),
+('Mark', 'Johnson', 'y6120QOlsfU', '8wwg0l'),
+('Richard', 'Hasson', 'dQw4w9WgXcQ', 'arydfd'),
+('Gina', 'Korman', '', NULL),
+('Mark', 'Johnson', 'y6120QOlsfU', 'bl40qw'),
+('Richard', 'Hasson', 'dQw4w9WgXcQ', 'ehn1pt'),
+('Lopez', '', 'dQw4w9WgXcQ', 'hucyzx'),
+('Greg', '', '5qap5aO4i9A', NULL),
+('Pauline', 'Wilks', 'jNQXAC9IVRw', 'i2l3oo'),
+('Richard', 'Hasson', 'jNQXAC9IVRw', 'i6336w'),
+('Johnson', 'y6120QOlsfU', '', 'iey5vi'),
+('William', 'Kwan', 'y6120QOlsfU', 'kktiwe'),
+('', 'Ct6BUPvE2sM', '', NULL),
+('Loretta', 'Crutcher', 'y6120QOlsfU', 'nkjgku'),
+('Pauline', 'Wilks', 'jNQXAC9IVRw', 'ov5gd8'),
+('Mary', 'Thompson', 'Ct6BUPvE2sM', 'qa16ua'),
+('Daniel', 'Bell', '5qap5aO4i9A', 'xciyse'),
+('Evelyn', 'Johnson', 'dQw4w9WgXcQ', 'xvhk6d');
+
+-- select video_id
+-- COUNT(unique users)
+-- DISTINTC first and last name
+-- filter the data for not null flagid
+-- GROUP BY
+
+select video_id,count(distinct concat(user_firstname,user_lastname)) as cnt_of_users
+from cricket_dataset.user_flags
+where flag_id is not null
+group by video_id
+order by 2 desc
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*You have meta table with columns user_id, name, status, country
+Output share of US users that are active. Active users are the ones with an "open" status in the table.
+
+Return total users and active users and active users share for US*/
+
+CREATE TABLE cricket_dataset.fb_active_users (
+    user_id INT64,
+    name string,
+    status string,
+    country string
+);
+
+-- Insert records into fb_active_users
+INSERT INTO cricket_dataset.fb_active_users (user_id, name, status, country) VALUES
+(33, 'Amanda Leon', 'open', 'Australia'),
+(27, 'Jessica Farrell', 'open', 'Luxembourg'),
+(18, 'Wanda Ramirez', 'open', 'USA'),
+(50, 'Samuel Miller', 'closed', 'Brazil'),
+(16, 'Jacob York', 'open', 'Australia'),
+(25, 'Natasha Bradford', 'closed', 'USA'),
+(34, 'Donald Ross', 'closed', 'China'),
+(52, 'Michelle Jimenez', 'open', 'USA'),
+(11, 'Theresa John', 'open', 'China'),
+(37, 'Michael Turner', 'closed', 'Australia'),
+(32, 'Catherine Hurst', 'closed', 'Mali'),
+(61, 'Tina Turner', 'open', 'Luxembourg'),
+(4, 'Ashley Sparks', 'open', 'China'),
+(82, 'Jacob York', 'closed', 'USA'),
+(87, 'David Taylor', 'closed', 'USA'),
+(78, 'Zachary Anderson', 'open', 'China'),
+(5, 'Tiger Leon', 'closed', 'China'),
+(56, 'Theresa Weaver', 'closed', 'Brazil'),
+(21, 'Tonya Johnson', 'closed', 'Mali'),
+(89, 'Kyle Curry', 'closed', 'Mali'),
+(7, 'Donald Jim', 'open', 'USA'),
+(22, 'Michael Bone', 'open', 'Canada'),
+(31, 'Sara Michaels', 'open', 'Denmark');
+
+-- COUNT FILTER FOR US
+-- COUNT ACTIVE users in US
+-- active users/total users * 100
+
+select count(user_id) as total_users,sum(case when status='open' then 1 else 0 end) as act_users_cnt,
+round(sum(case when status='open' then 1 else 0 end)/count(user_id)*100,2) as percent_of_Act_users
+from cricket_dataset.fb_active_users
+where country='USA';
+
+--Find non_active users share for China
+select * from cricket_dataset.fb_active_users;
+
+select count(user_id) as total_users,sum(case when status='closed' then 1 else 0 end) as non_act_users_cnt,
+round(sum(case when status='closed' then 1 else 0 end)/count(user_id)*100,2) as percent_of_NonAct_users
+from cricket_dataset.fb_active_users
+where country='China'
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*You are given a bank transaction data with columns bank_id, customer_id, amount_type(credit debit), transaction_amount and transaction_date
+
+-- Write a query to find starting and ending trans amount for each customer
+*/
+-- Create table bank_transactions
+drop table if exists cricket_dataset.bank_transactions;
+CREATE TABLE cricket_dataset.bank_transactions (
+    transaction_id int64,
+    bank_id INT64,
+    customer_id INT64,
+    transaction_amount float64,
+    transaction_type string,
+    transaction_date DATE
+);
+
+-- Insert sample records into bank_transactions
+INSERT INTO cricket_dataset.bank_transactions (transaction_id,bank_id, customer_id, transaction_amount, transaction_type, transaction_date) VALUES
+(1,1, 101, 500.00, 'credit', '2024-01-01'),
+(2,1, 101, 200.00, 'debit', '2024-01-02'),
+(3,1, 101, 300.00, 'credit', '2024-01-05'),
+(4,1, 101, 150.00, 'debit', '2024-01-08'),
+(5,1, 102, 1000.00, 'credit', '2024-01-01'),
+(6,1, 102, 400.00, 'debit', '2024-01-03'),
+(7,1, 102, 600.00, 'credit', '2024-01-05'),
+(8,1, 102, 200.00, 'debit', '2024-01-09');
+
+-- first trans details 
+-- last trans details 
+-- than join these 2 trans
+
+select * from cricket_dataset.bank_transactions;
+with cte1 as( --ranking transactions by doing partitions
+select *,
+row_number() over(partition by customer_id order by transaction_date) as rn
+from cricket_dataset.bank_transactions),
+cte2 as(  --first transaction details
+select customer_id,transaction_amount,transaction_date
+from cte1
+where rn=(select min(rn) from cte1)),
+cte3 as( --last transaction details
+select customer_id,transaction_amount,transaction_date
+from cte1
+where rn=(select max(rn) from cte1))
+
+select cte2.customer_id,cte2.transaction_amount as first_trans_amt,cte2.transaction_date as first_trans_date,
+cte3.transaction_amount as last_trans_amt,cte3.transaction_date as last_trans_date
+from cte2
+join cte3
+on cte2.customer_id = cte3.customer_id
+
+-- Write a query to return each cx_id and their bank balance
+-- Note bank balance = Total Credit - Total_debit
+with cte as(select *,case when transaction_type='credit' then transaction_amount end as credit_trans,
+case when transaction_type='debit' then transaction_amount end as debit_trans
+from cricket_dataset.bank_transactions),
+final_cte as( select customer_id,sum(credit_trans) over(partition by customer_id) as total_credit,
+sum(debit_trans) over(partition by customer_id) as total_debit
+from cte)
+select distinct customer_id, (total_credit-total_debit) as bank_balance from final_cte
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*You have a students table with columns id, name, marks and class of students
+
+-- Write a query to fetch students with minmum marks and maximum marks 
+*/
+
+DROP TABLE IF EXISTS cricket_dataset.students;
+CREATE TABLE cricket_dataset.students (
+    student_id INT64,
+    student_name string,
+    marks INT64,
+    class string
+);
+
+
+INSERT INTO cricket_dataset.students (student_id, student_name, marks, class) VALUES
+(1, 'John Doe', 85, 'A'),
+(2, 'Jane Smith', 92, 'B'),
+(3, 'Michael Johnson', 78, 'A'),
+(4, 'Emily Brown', 59, 'C'),
+(5, 'David Lee', 88, 'B'),
+(6, 'Sarah Wilson', 59, 'A'),
+(7, 'Daniel Taylor', 90, 'C'),
+(8, 'Emma Martinez', 79, 'B'),
+(9, 'Christopher Anderson', 87, 'A'),
+(10, 'Olivia Garcia', 91, 'C'),
+(11, 'James Rodriguez', 83, 'B'),
+(12, 'Sophia Hernandez', 94, 'A'),
+(13, 'Matthew Martinez', 76, 'C'),
+(14, 'Isabella Lopez', 89, 'B'),
+(15, 'Ethan Gonzalez', 80, 'A'),
+(16, 'Amelia Perez', 93, 'C'),
+(17, 'Alexander Torres', 77, 'B'),
+(18, 'Mia Flores', 86, 'A'),
+(19, 'William Sanchez', 84, 'C'),
+(20, 'Ava Ramirez', 97, 'B'),
+(21, 'Daniel Taylor', 75, 'A'),
+(22, 'Chloe Cruz', 98, 'C'),
+(23, 'Benjamin Ortiz', 89, 'B'),
+(24, 'Harper Reyes', 99, 'A'),
+(25, 'Ryan Stewart', 99, 'C');
+
+--first find minimum marks and max marks using min() and max()
+
+select min(marks) from cricket_dataset.students;
+select max(marks) from cricket_dataset.students;
+
+select * from cricket_dataset.students
+where marks in (59,99)
+
+--another approach
+select * from cricket_dataset.students
+where marks=(select min(marks) from cricket_dataset.students)
+or marks=(select max(marks) from cricket_dataset.students)
+
+--approach3
+WITH CTE
+AS
+(
+SELECT 
+    MIN(marks) as min_marks,
+    MAX(marks) as max_marks
+FROM cricket_dataset.students
+)
+SELECT
+    s.*
+FROM cricket_dataset.students as s
+JOIN 
+CTE ON s.marks = CTE.min_marks
+OR
+s.marks = CTE.max_marks
+
+--Write a SQL query to return students with maximum marks in each class
+SELECT
+    class,
+    MAX(marks) AS max_marks
+FROM
+    cricket_dataset.students
+GROUP BY
+    class;
+
+--appraoch2
+select * from
+(select *,
+rank() over(partition by class order by marks desc) as rnk
+from cricket_dataset.students) A
+where rnk = 1
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+Write an SQL script to display the immediate manager of an employee.
+
+Given a table Employees with columns: Emp_No, Emp_Name, and Manager_Id.
+
+The script should take an input parameter Emp_No and return the employee's name along with their immediate manager's name.
+
+If an employee has no manager (i.e., Manager_Id is NULL), display "No Boss" for that employee.
+*/
+
+DROP TABLE IF EXISTS cricket_dataset.employees;
+CREATE TABLE cricket_dataset.employees (
+  Emp_No float64,
+  Emp_Name string,
+  Job_Name string,
+  Manager_Id float64,
+  HireDate DATE,
+  Salary float64,
+  Commission float64,  
+  DeptNo float64
+);
+
+INSERT INTO cricket_dataset.employees (Emp_No, Emp_Name, Job_Name, Manager_Id, HireDate, Salary, Commission, DeptNo) VALUES
+(7839, 'KING', 'PRESIDENT', NULL, '1981-11-17', 5000, NULL, 10),
+(7698, 'BLAKE', 'MANAGER', 7839, '1981-05-01', 2850, NULL, 30),
+(7782, 'CLARK', 'MANAGER', 7839, '1981-06-09', 2450, NULL, 10),
+(7566, 'JONES', 'MANAGER', NULL, '1981-04-02', 2975, NULL, 20),
+(7788, 'SCOTT', 'ANALYST', 7566, '1987-07-29', 3000, NULL, 20),
+(7902, 'FORD', 'ANALYST', 7566, '1981-12-03', 3000, NULL, 20),
+(7369, 'SMITH', 'CLERK', 7902, '1980-12-17', 800, NULL, 20),
+(7499, 'ALLEN', 'SALESMAN', NULL, '1981-02-20', 1600, 300, 30),
+(7521, 'WARD', 'SALESMAN', 7698, '1981-02-22', 1250, 500, 30),
+(7654, 'MARTIN', 'SALESMAN', 7698, '1981-09-28', 1250, 1400, 30),
+(7844, 'TURNER', 'SALESMAN', 7698, '1981-09-08', 1500, 0, 30),
+(7876, 'ADAMS', 'CLERK', NULL, '1987-06-02', 1100, NULL, 20),
+(7900, 'JAMES', 'CLERK', 7698, '1981-12-03', 950, NULL, 30),
+(7934, 'MILLER', 'CLERK', 7782, '1982-01-23', 1300, NULL, 10);
+
+--use left join to emp even though they are managers so we can replace
+--null values with coalesce()
+
+select e1.Emp_Name as emp_name,
+COALESCE(e2.emp_name, 'No Boss') as manager_name
+from cricket_dataset.employees e1
+left join cricket_dataset.employees e2
+on e1.Manager_Id=e2.Emp_No
+where e1.Emp_No=7499
