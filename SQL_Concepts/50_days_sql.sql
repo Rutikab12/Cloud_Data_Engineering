@@ -2150,3 +2150,409 @@ from cricket_dataset.employees e1
 left join cricket_dataset.employees e2
 on e1.Manager_Id=e2.Emp_No
 where e1.Emp_No=7499
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--write an SQL query to retrieve employee details from each department who have a salary greater than the average salary in their department.
+DROP TABLE IF EXISTS cricket_dataset.employees;
+
+CREATE TABLE cricket_dataset.employees (
+  Emp_No int64 NOT NULL,
+  Emp_Name string,
+  Job_Name string,
+  Manager_Id float64,
+  HireDate DATE,
+  Salary float64,
+  Commission float64,  
+  Department string -- Changed from DeptNo to Department
+);
+
+INSERT INTO cricket_dataset.employees (Emp_No, Emp_Name, Job_Name, Manager_Id, HireDate, Salary, Commission, Department) VALUES
+(7839, 'KING', 'PRESIDENT', NULL, '1981-11-17', 5000, NULL, 'IT'),
+(7698, 'BLAKE', 'MANAGER', 7839, '1981-05-01', 2850, NULL, 'HR'),
+(7782, 'CLARK', 'MANAGER', 7839, '1981-06-09', 2450, NULL, 'Marketing'),
+(7566, 'JONES', 'MANAGER', 7839, '1981-04-02', 2975, NULL, 'Operations'),
+(7788, 'SCOTT', 'ANALYST', 7566, '1987-07-29', 3000, NULL, 'Operations'),
+(7902, 'FORD', 'ANALYST', 7566, '1981-12-03', 3000, NULL, 'Operations'),
+(7369, 'SMITH', 'CLERK', 7902, '1980-12-17', 800, NULL, 'Operations'),
+(7499, 'ALLEN', 'SALESMAN', 7698, '1981-02-20', 1600, 300, 'HR'),
+(7521, 'WARD', 'SALESMAN', 7698, '1981-02-22', 1250, 500, 'HR'),
+(7654, 'MARTIN', 'SALESMAN', 7698, '1981-09-28', 1250, 1400, 'HR'),
+(7844, 'TURNER', 'SALESMAN', 7698, '1981-09-08', 1500, 0, 'HR'),
+(7876, 'ADAMS', 'CLERK', 7788, '1987-06-02', 1100, NULL, 'Operations'),
+(7900, 'JAMES', 'CLERK', 7698, '1981-12-03', 950, NULL, 'HR'),
+(7934, 'MILLER', 'CLERK', 7782, '1982-01-23', 1300, NULL, 'Marketing'),
+(7905, 'BROWN', 'SALESMAN', 7698, '1981-11-12', 1250, 1400, 'HR'),
+(7906, 'DAVIS', 'ANALYST', 7566, '1987-07-13', 3000, NULL, 'Operations'),
+(7907, 'GARCIA', 'MANAGER', 7839, '1981-08-12', 2975, NULL, 'IT'),
+(7908, 'HARRIS', 'SALESMAN', 7698, '1981-06-21', 1600, 300, 'HR'),
+(7909, 'JACKSON', 'CLERK', 7902, '1981-11-17', 800, NULL, 'Operations'),
+(7910, 'JOHNSON', 'MANAGER', 7839, '1981-04-02', 2850, NULL, 'Marketing'),
+(7911, 'LEE', 'ANALYST', 7566, '1981-09-28', 1250, 1400, 'Operations'),
+(7912, 'MARTINEZ', 'CLERK', 7902, '1981-12-03', 1250, NULL, 'Operations'),
+(7913, 'MILLER', 'MANAGER', 7839, '1981-01-23', 2450, NULL, 'HR'),
+(7914, 'RODRIGUEZ', 'SALESMAN', 7698, '1981-12-03', 1500, 0, 'Marketing'),
+(7915, 'SMITH', 'CLERK', 7902, '1980-12-17', 1100, NULL, 'IT'),
+(7916, 'TAYLOR', 'CLERK', 7902, '1981-02-20', 950, NULL, 'Marketing'),
+(7917, 'THOMAS', 'SALESMAN', 7698, '1981-02-22', 1250, 500, 'Operations'),
+(7918, 'WHITE', 'ANALYST', 7566, '1981-09-28', 1300, NULL, 'IT'),
+(7919, 'WILLIAMS', 'MANAGER', 7839, '1981-11-17', 5000, NULL, 'Marketing'),
+(7920, 'WILSON', 'SALESMAN', 7698, '1981-05-01', 2850, NULL, 'HR'),
+(7921, 'YOUNG', 'CLERK', 7902, '1981-06-09', 2450, NULL, 'Operations'),
+(7922, 'ADAMS', 'ANALYST', 7566, '1987-07-13', 3000, NULL, 'HR'),
+(7923, 'BROWN', 'MANAGER', 7839, '1981-08-12', 2975, NULL, 'Marketing'),
+(7924, 'DAVIS', 'SALESMAN', 7698, '1981-06-21', 1600, 300, 'Operations');
+
+--avg salary of employees in dept and comapre it within table
+--example of correlated subquery
+
+select e1.Emp_No,e1.Department,e1.Salary
+from cricket_dataset.employees e1
+where e1.salary > (select avg(e2.salary) from cricket_dataset.employees e2 where e2.Department=e1.Department)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Write a SQL query to show each product category and its return percentage. 
+--return percentage = total_return by category/total_overall_return * 100
+--Expected Output:
+--Category: Name of the product category.Return Percentage: Percentage of returns for each category.
+
+DROP TABLE IF EXISTS cricket_dataset.amazon_products;
+CREATE TABLE cricket_dataset.amazon_products (
+    product_id int64,
+    product_name string,
+    category string,
+    price float64,
+    country string
+);
+
+-- Add 25+ records with real product names for the USA
+INSERT INTO cricket_dataset.amazon_products (product_id,product_name, category, price, country) VALUES
+(1,'iPhone 13 Pro Max', 'Smartphones', 1099.00, 'USA'),
+(2,'Samsung Galaxy S21 Ultra', 'Smartphones', 1199.99, 'USA'),
+(3,'Google Pixel 6 Pro', 'Smartphones', 899.00, 'USA'),
+(4,'Samsung QN90A Neo QLED TV', 'TVs', 2397.99, 'USA'),
+(5,'LG OLED C1 Series', 'TVs', 1996.99, 'USA'),
+(6,'Sony Bravia XR A90J', 'TVs', 2798.00, 'USA'),
+(7,'Apple MacBook Pro 16-inch', 'Laptops', 2399.00, 'USA'),
+(8,'Dell XPS 15', 'Laptops', 1899.99, 'USA'),
+(9,'Microsoft Surface Laptop 4', 'Laptops', 1299.99, 'USA'),
+(10,'Sony WH-1000XM4 Wireless Headphones', 'Headphones', 348.00, 'USA'),
+(11,'Bose Noise Cancelling Headphones 700', 'Headphones', 379.00, 'USA'),
+(12,'Apple AirPods Pro', 'Headphones', 249.00, 'USA'),
+(13,'Samsung Odyssey G9 Gaming Monitor', 'Monitors', 1399.99, 'USA'),
+(14,'Dell S2721QS 27-inch 4K Monitor', 'Monitors', 339.99, 'USA'),
+(15,'LG 27GN950-B UltraGear Gaming Monitor', 'Monitors', 1296.99, 'USA'),
+(16,'Canon EOS R5 Mirrorless Camera', 'Cameras', 3899.00, 'USA'),
+(17,'Sony Alpha a7 III Mirrorless Camera', 'Cameras', 1998.00, 'USA'),
+(18,'Nikon Z7 II Mirrorless Camera', 'Cameras', 2996.95, 'USA'),
+(19,'Nintendo Switch', 'Gaming Consoles', 299.99, 'USA'),
+(20,'PlayStation 5', 'Gaming Consoles', 499.99, 'USA'),
+(21,'Xbox Series X', 'Gaming Consoles', 499.99, 'USA'),
+(22,'Apple Watch Series 7', 'Smartwatches', 399.00, 'USA'),
+(23,'Samsung Galaxy Watch 4', 'Smartwatches', 249.99, 'USA'),
+(24,'Fitbit Sense', 'Smartwatches', 299.95, 'USA'),
+(25,'iPhone 13 Pro Max', 'Smartphones', 1099.00, 'USA'),
+(26,'Samsung Galaxy S21 Ultra', 'Smartphones', 1199.99, 'USA'),
+(27,'Google Pixel 6 Pro', 'Smartphones', 899.00, 'USA'),
+(28,'Samsung QN90A Neo QLED TV', 'TVs', 2397.99, 'USA'),
+(29,'LG OLED C1 Series', 'TVs', 1996.99, 'USA'),
+(30,'Sony Bravia XR A90J', 'TVs', 2798.00, 'USA'),
+(31,'Apple MacBook Pro 16-inch', 'Laptops', 2399.00, 'USA'),
+(32,'Dell XPS 15', 'Laptops', 1899.99, 'USA'),
+(33,'Microsoft Surface Laptop 4', 'Laptops', 1299.99, 'USA'),
+(34,'Sony WH-1000XM4 Wireless Headphones', 'Headphones', 348.00, 'USA'),
+(35,'Bose Noise Cancelling Headphones 700', 'Headphones', 379.00, 'USA'),
+(36,'Apple AirPods Pro', 'Headphones', 249.00, 'USA'),
+(37,'Samsung Odyssey G9 Gaming Monitor', 'Monitors', 1399.99, 'USA'),
+(38,'Dell S2721QS 27-inch 4K Monitor', 'Monitors', 339.99, 'USA'),
+(39,'LG 27GN950-B UltraGear Gaming Monitor', 'Monitors', 1296.99, 'USA'),
+(40,'Canon EOS R5 Mirrorless Camera', 'Cameras', 3899.00, 'USA'),
+(41,'Sony Alpha a7 III Mirrorless Camera', 'Cameras', 1998.00, 'USA'),
+(42,'Nikon Z7 II Mirrorless Camera', 'Cameras', 2996.95, 'USA'),
+(43,'Nintendo Switch', 'Gaming Consoles', 299.99, 'USA'),
+(44,'PlayStation 5', 'Gaming Consoles', 499.99, 'USA'),
+(45,'Xbox Series X', 'Gaming Consoles', 499.99, 'USA'),
+(46,'Apple Watch Series 7', 'Smartwatches', 399.00, 'USA'),
+(47,'Samsung Galaxy Watch 4', 'Smartwatches', 249.99, 'USA'),
+(48,'Fitbit Sense', 'Smartwatches', 299.95, 'USA'),
+(49,'iPhone 13 Pro Max', 'Smartphones', 1099.00, 'USA'),
+(50,'Samsung Galaxy S21 Ultra', 'Smartphones', 1199.99, 'USA'),
+(51,'Google Pixel 6 Pro', 'Smartphones', 899.00, 'USA'),
+(52,'Samsung QN90A Neo QLED TV', 'TVs', 2397.99, 'USA'),
+(53,'LG OLED C1 Series', 'TVs', 1996.99, 'USA'),
+(54,'Sony Bravia XR A90J', 'TVs', 2798.00, 'USA'),
+(55,'Apple MacBook Pro 16-inch', 'Laptops', 2399.00, 'USA'),
+(56,'Dell XPS 15', 'Laptops', 1899.99, 'USA'),
+(57,'Microsoft Surface Laptop 4', 'Laptops', 1299.99, 'USA'),
+(58,'Sony WH-1000XM4 Wireless Headphones', 'Headphones', 348.00, 'USA');
+
+
+DROP TABLE IF EXISTS cricket_dataset.return_records;
+CREATE TABLE cricket_dataset.return_records (
+    return_id int64,
+    order_id INT64,
+    product_id INT64,
+    return_reason string,
+    return_date DATE
+);
+
+-- Add 10 more return records
+INSERT INTO cricket_dataset.return_records (return_id,order_id, product_id, return_reason, return_date) VALUES
+(1,1006, 7, 'Defective product', '2024-04-27'),
+(2,1007, 9, 'Wrong color', '2024-04-29'),
+(3,1008, 8, 'Size too small', '2024-05-01'),
+(4,1009, 6, 'Not satisfied with quality', '2024-05-03'),
+(5,1010, 10, 'Received wrong item', '2024-05-05'),
+(6,1011, 12, 'Defective product', '2024-05-07'),
+(7,1012, 11, 'Changed mind', '2024-05-09'),
+(8,1013, 14, 'Item not needed', '2024-05-11'),
+(9,1014, 15, 'Damaged upon arrival', '2024-05-13'),
+(10,1015, 13, 'Wrong quantity', '2024-05-15'),
+(11,1016, 16, 'Defective product', '2024-05-17'),
+(12,1017, 17, 'Wrong size', '2024-05-19'),
+(13,1018, 18, 'Received damaged', '2024-05-21'),
+(14,1019, 19, 'Not as described', '2024-05-23'),
+(15,1020, 20, 'Changed mind', '2024-05-25'),
+(16,1021, 21, 'Item not needed', '2024-05-27'),
+(17,1022, 22, 'Defective product', '2024-05-29'),
+(18,1023, 23, 'Wrong color', '2024-05-31'),
+(19,1024, 24, 'Received wrong item', '2024-06-02'),
+(20,1025, 25, 'Size too small', '2024-06-04'),
+(21,1026, 26, 'Damaged upon arrival', '2024-06-06'),
+(22,1027, 27, 'Defective product', '2024-06-08'),
+(23,1028, 28, 'Not satisfied with quality', '2024-06-10'),
+(24,1029, 29, 'Wrong quantity', '2024-06-12'),
+(25,1030, 30, 'Changed mind', '2024-06-14'),
+(26,1031, 31, 'Item not needed', '2024-06-16'),
+(27,1032, 32, 'Defective product', '2024-06-18'),
+(28,1033, 33, 'Wrong size', '2024-06-20'),
+(29,1034, 34, 'Received damaged', '2024-06-22'),
+(30,1035, 35, 'Not as described', '2024-06-24'),
+(31,1036, 36, 'Changed mind', '2024-06-26'),
+(32,1037, 37, 'Item not needed', '2024-06-28'),
+(33,1038, 38, 'Defective product', '2024-06-30'),
+(34,1039, 39, 'Wrong color', '2024-07-02'),
+(35,1040, 40, 'Received wrong item', '2024-07-04');
+
+-- category name,
+-- total returns
+-- each category return count
+-- each category return count/total returns * 100
+
+SELECT * FROM cricket_dataset.amazon_products;
+SELECT * FROM cricket_dataset.return_records;
+
+select ap.category,round(count(r.*)/(select count(*) from cricket_dataset.return_records)*100,2) as return_percentage
+from cricket_dataset.amazon_products ap
+join cricket_dataset.return_records r
+on ap.product_id=r.product_id
+group by ap.category
+order by 2 desc
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+Swiggy Data Analyst Interview Question:
+
+Write a SQL query to analyze the order patterns
+throughout the day, providing insights into each hour's total orders and their respective percentages of the total orders. 
+
+The output should include the hour, total orders,and order percentage. Order by % order in decending
+
+%orders = hourly order/total_orders * 100
+*/
+
+DROP table if exists cricket_dataset.order_data;
+-- Create the table
+CREATE TABLE cricket_dataset.order_data (
+    order_id int64,
+    order_time TIMESTAMP,
+    customer_id INT64,
+    total_amount float64
+);
+
+
+-- Add records
+
+-- Add records
+INSERT INTO order_data (order_id,order_time, customer_id, total_amount) VALUES
+    (1,'2024-03-31 08:30:00', 1001, 25.50),
+    (2,'2024-03-31 09:15:00', 1002, 32.75),
+    (3,'2024-03-31 10:00:00', 1003, 20.00),
+    (4,'2024-03-31 11:45:00', 1004, 18.50),
+    (5,'2024-03-31 12:30:00', 1005, 27.80),
+    (6,'2024-03-31 13:15:00', 1006, 35.20),
+    (7,'2024-03-31 14:00:00', 1007, 40.00),
+    (8,'2024-03-31 15:45:00', 1008, 22.90),
+    (9,'2024-03-31 16:30:00', 1009, 28.75),
+    (10,'2024-03-31 17:15:00', 1010, 30.60),
+    (11,'2024-03-31 18:00:00', 1011, 24.95),
+    (12,'2024-03-31 19:45:00', 1012, 38.25),
+    (13,'2024-03-31 20:30:00', 1013, 42.80),
+    (14,'2024-03-31 21:15:00', 1014, 26.40),
+    (15,'2024-03-31 22:00:00', 1015, 33.10),
+    (16,'2024-03-31 23:45:00', 1016, 20.50),
+    (17,'2024-03-31 00:15:00', 1017, 28.75),
+    (18,'2024-03-31 01:00:00', 1018, 18.90),
+    (19,'2024-03-31 22:45:00', 1019, 23.25),
+    (20,'2024-03-31 22:30:00', 1020, 30.00),
+    (21,'2024-03-31 22:15:00', 1021, 35.80),
+    (22,'2024-03-31 23:00:00', 1022, 38.50),
+    (23,'2024-03-31 06:45:00', 1023, 21.20),
+    (24,'2024-03-31 09:30:00', 1024, 27.95),
+    (25,'2024-03-31 23:15:00', 1025, 32.70),
+    (26,'2024-03-31 09:00:00', 1026, 25.45),
+    (27,'2024-03-31 10:45:00', 1027, 37.80),
+    (28,'2024-03-31 21:30:00', 1028, 40.90),
+    (29,'2024-03-31 23:15:00', 1029, 24.60),
+    (30,'2024-03-31 13:00:00', 1030, 31.75),
+    (31,'2024-03-31 22:45:00', 1031, 22.50),
+    (32,'2024-03-31 22:30:00', 1032, 30.25),
+    (33,'2024-03-31 23:15:00', 1033, 19.80),
+    (34,'2024-03-31 23:00:00', 1034, 24.75),
+    (35,'2024-03-31 20:45:00', 1035, 32.50),
+    (36,'2024-03-31 20:30:00', 1036, 38.20),
+    (37,'2024-03-31 20:15:00', 1037, 41.75),
+    (38,'2024-03-31 22:00:00', 1038, 23.80),
+    (39,'2024-03-31 22:45:00', 1039, 29.95),
+    (40'2024-03-31 22:30:00', 1040, 31.60);
+
+select extract(HOUR from order_time) as each_hours,count(order_id) as total_orders,
+count(1)/(select count(*) from cricket_dataset.order_data)*100 as percent_of_orders
+from cricket_dataset.order_data
+group by 1
+order by percent_of_orders desc
+
+--Create a new time category as Morning, After_noon, Evening and Night And Find total orders fall into this category
+/*Morning < 12 O clock
+After noon between 12 and 5
+Evening 5 and 8
+Night > 8 */
+
+select
+(case when extract(hour from order_time)<12 then 'Morning'
+ when extract(hour from order_time) between 12 and 17 then 'Afternoon'
+ when extract(hour from order_time) between 17 and 20 then 'Evening'
+ when extract(hour from order_time)> 20 then 'Night' end) as  time_category,
+ count(order_id) as total_orders
+from cricket_dataset.order_data
+group by (case when extract(hour from order_time)<12 then 'Morning'
+ when extract(hour from order_time) between 12 and 17 then 'Afternoon'
+ when extract(hour from order_time) between 17 and 20 then 'Evening'
+ when extract(hour from order_time)> 20 then 'Night' end)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+IBM wants to analyze user purchases for Fridays in the first quarter of the year. 
+Calculate the average amount users spent per order for each Friday.
+Write an SQL query to find the average amount spent by users per order for each Friday in the first quarter of the year.
+*/
+CREATE TABLE cricket_dataset.user_purchases (
+    user_id INT64,
+    date DATE,
+    amount_spent FLOAT64,
+    day_name string
+);
+
+-- Insert records into the user_purchases table
+INSERT INTO cricket_dataset.user_purchases (user_id, date, amount_spent, day_name) VALUES
+(1047, '2023-01-01', 288, 'Sunday'),
+(1099, '2023-01-04', 803, 'Wednesday'),
+(1055, '2023-01-07', 546, 'Saturday'),
+(1040, '2023-01-10', 680, 'Tuesday'),
+(1052, '2023-01-13', 889, 'Friday'),
+(1052, '2023-01-13', 596, 'Friday'),
+(1016, '2023-01-16', 960, 'Monday'),
+(1023, '2023-01-17', 861, 'Tuesday'),
+(1010, '2023-01-19', 758, 'Thursday'),
+(1013, '2023-01-19', 346, 'Thursday'),
+(1069, '2023-01-21', 541, 'Saturday'),
+(1030, '2023-01-22', 175, 'Sunday'),
+(1034, '2023-01-23', 707, 'Monday'),
+(1019, '2023-01-25', 253, 'Wednesday'),
+(1052, '2023-01-25', 868, 'Wednesday'),
+(1095, '2023-01-27', 424, 'Friday'),
+(1017, '2023-01-28', 755, 'Saturday'),
+(1010, '2023-01-29', 615, 'Sunday'),
+(1063, '2023-01-31', 534, 'Tuesday'),
+(1019, '2023-02-03', 185, 'Friday'),
+(1019, '2023-02-03', 995, 'Friday'),
+(1092, '2023-02-06', 796, 'Monday'),
+(1058, '2023-02-09', 384, 'Thursday'),
+(1055, '2023-02-12', 319, 'Sunday'),
+(1090, '2023-02-15', 168, 'Wednesday'),
+(1090, '2023-02-18', 146, 'Saturday'),
+(1062, '2023-02-21', 193, 'Tuesday'),
+(1023, '2023-02-24', 259, 'Friday'),
+(1023, '2023-02-24', 849, 'Friday'),
+(1009, '2023-02-27', 552, 'Monday'),
+(1012, '2023-03-02', 303, 'Thursday'),
+(1001, '2023-03-05', 317, 'Sunday'),
+(1058, '2023-03-08', 573, 'Wednesday'),
+(1001, '2023-03-11', 531, 'Saturday'),
+(1034, '2023-03-14', 440, 'Tuesday'),
+(1096, '2023-03-17', 650, 'Friday'),
+(1048, '2023-03-20', 711, 'Monday'),
+(1089, '2023-03-23', 388, 'Thursday'),
+(1001, '2023-03-26', 353, 'Sunday'),
+(1016, '2023-03-29', 833, 'Wednesday');
+
+--find week,day and year from date , then group by week
+
+select extract(WEEK from date) as week_no,
+avg(amount_spent) as avg_amt
+from cricket_dataset.user_purchases
+where 
+extract(YEAR from date) =2023
+and extract(QUARTER from date)=1
+and extract(DAY from date)=5
+group by 1
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*You are given a uber_ride table with columns
+ride_id, ride_time_stamp, ride_status.
+(which has information about the ride)
+Find out % of ride cancelled by uber_driver*/
+DROP TABLE IF EXISTS cricket_dataset.uber_ride;
+
+-- Create the Uber ride table
+CREATE TABLE cricket_dataset.uber_ride (
+    ride_id int64,
+    ride_timestamp TIMESTAMP,
+    ride_status string  -- "ride_completed", "cancelled_by_driver" or "cancelled_by_user"
+);
+
+-- Insert sample records
+INSERT INTO cricket_dataset.uber_ride (ride_id,ride_timestamp, ride_status)
+VALUES
+    (1,'2024-05-09 08:30:00', 'cancelled_by_driver'),
+    (2,'2024-05-09 09:00:00', 'cancelled_by_user'),
+    (3,'2024-05-09 10:00:00', 'ride_completed'),
+    (4,'2024-05-09 11:00:00', 'cancelled_by_user'),
+    (5,'2024-05-09 12:00:00', 'cancelled_by_driver'),
+    (6,'2024-05-09 13:00:00', 'cancelled_by_user'),
+    (7,'2024-05-09 14:00:00', 'cancelled_by_user'),
+    (8,'2024-05-09 15:00:00', 'cancelled_by_user'),
+    (9,'2024-05-09 16:00:00', 'ride_completed'),
+    (10,'2024-05-09 17:00:00', 'cancelled_by_user'),
+    (11,'2024-05-09 18:00:00', 'ride_completed'),
+    (12,'2024-05-09 19:00:00', 'cancelled_by_user'),
+    (13,'2024-05-09 20:00:00', 'cancelled_by_user'),
+    (14,'2024-05-09 21:00:00', 'cancelled_by_user'),
+    (15,'2024-05-09 22:00:00', 'cancelled_by_driver'),
+    (16,'2024-05-09 13:00:00', 'cancelled_by_user'),
+    (17,'2024-05-09 14:00:00', 'cancelled_by_user'),
+    (18,'2024-05-09 15:00:00', 'cancelled_by_user'),
+    (19,'2024-05-09 16:00:00', 'ride_completed'),
+    (20,'2024-05-09 17:00:00', 'cancelled_by_user'),
+    (21,'2024-05-09 18:00:00', 'cancelled_by_driver'),
+    (22,'2024-05-09 19:00:00', 'cancelled_by_user'),
+    (23,'2024-05-09 20:00:00', 'cancelled_by_user'),
+    (24,'2024-05-09 21:00:00', 'cancelled_by_user'),
+    (25,'2024-05-09 22:00:00', 'cancelled_by_driver');
+
+--total count of cancelled rides
+--total cancelled by drivers
+--then calculate percentage
+
+select round(sum(case when ride_status='cancelled_by_user' then 1 else 0 end)/(select count(*) from cricket_dataset.uber_ride where ride_status != 'ride_completed')*100,2) as percentage_of_cancelled_rides
+from cricket_dataset.uber_ride
+
+--how many ride were cancelled by user in the evening. hour > 17 is considered as evening 
+select * from cricket_dataset.uber_ride
+where extract(hour from ride_timestamp)>17
+and ride_status = 'cancelled_by_user'
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
