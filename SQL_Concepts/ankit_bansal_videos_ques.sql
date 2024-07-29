@@ -721,3 +721,38 @@ inner -- 0 records
 left -- 5 records
 right -- 10 records
 full -- 15 record
+
+----------------------------------------------------------------------------------------------------------------------------
+--find new and repeat customers
+
+create table vfscmuat_dh_lake_comms_ie_dev_staging_s.customer_orders (
+order_id int64,
+customer_id int64,
+order_date date,
+order_amount int64
+);
+select * from vfscmuat_dh_lake_comms_ie_dev_staging_s.customer_orders
+insert into vfscmuat_dh_lake_comms_ie_dev_staging_s.customer_orders values(1,100,cast('2022-01-01' as date),2000),(2,200,cast('2022-01-01' as date),2500),(3,300,cast('2022-01-01' as date),2100)
+,(4,100,cast('2022-01-02' as date),2000),(5,400,cast('2022-01-02' as date),2200),(6,500,cast('2022-01-02' as date),2700)
+,(7,100,cast('2022-01-03' as date),3000),(8,400,cast('2022-01-03' as date),1000),(9,600,cast('2022-01-03' as date),3000)
+;
+--first fetch first visit date of each customer_id and store it in cte
+--then do join with cte and original table
+--then see, where first order date and order_date is not matched, those customers are repeat ones.
+--again put them in cte and then query for end result
+with cte as(
+select customer_id,min(order_date) as first_visit
+from vfscmuat_dh_lake_comms_ie_dev_staging_s.customer_orders
+group by customer_id),
+cte2 as(
+select co.*,cte.first_visit,
+case when order_date=first_visit then 1 else 0 end as first_flag,
+case when order_date!=first_visit then 1 else 0 end as repeat_flag,
+case when order_date!=first_visit then 'Repeat' else 'New' end as cust_type
+from vfscmuat_dh_lake_comms_ie_dev_staging_s.customer_orders as co
+join cte
+on co.customer_id=cte.customer_id
+order by customer_id)
+select order_date,sum(cte2.first_flag) as new_customers,sum(cte2.repeat_flag) as repeat_customers,sum(cte2.order_amount) as total_order_amt
+from cte2
+group by order_date
