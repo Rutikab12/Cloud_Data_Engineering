@@ -2556,3 +2556,251 @@ select * from cricket_dataset.uber_ride
 where extract(hour from ride_timestamp)>17
 and ride_status = 'cancelled_by_user'
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+-- Most Profitable Companies You are given a table called forbes_global with columns company, sector, industry, country, 
+sales, profit, rank
+
+Find out each country's most most profitable company details
+*/
+
+
+CREATE TABLE cricket_dataset.forbes_global (
+    company string,
+    sector string,
+    industry string,
+    country string,
+    sales FLOAT64,
+    profits FLOAT64,
+    rank1 INT64
+);
+
+insert into cricket_dataset.forbes_global
+VALUES  
+('Walmart', 'Consumer Discretionary', 'General Merchandisers', 'United States', 482130.0, 14694.0, 1),
+('Sinopec-China Petroleum', 'Energy', 'Oil & Gas Operations', 'China', 448452.0, 7840.0, 2),
+('Royal Dutch Shell', 'Energy', 'Oil & Gas Operations', 'Netherlands', 396556.0, 15340.0, 3),
+('China National Petroleum', 'Energy', 'Oil & Gas Operations', 'China', 392976.0, 2837.0, 4),
+('State Grid', 'Utilities', 'Electric Utilities', 'China', 387056.0, 9573.0, 5),
+('Saudi Aramco', 'Energy', 'Oil & Gas Operations', 'Saudi Arabia', 355905.0, 11002.0, 6),
+('Volkswagen', 'Consumer Discretionary', 'Auto & Truck Manufacturers', 'Germany', 283565.0, 17742.4, 7),
+('BP', 'Energy', 'Oil & Gas Operations', 'United Kingdom', 282616.0, 3591.0, 8),
+('Amazon.com', 'Consumer Discretionary', 'Internet Services and Retailing', 'United States', 280522.0, 5362.0, 9),
+('Toyota Motor', 'Consumer Discretionary', 'Auto & Truck Manufacturers', 'Japan', 275288.0, 18499.3, 10),
+('Apple', 'Information Technology', 'Computers, Office Equipment', 'United States', 265595.0, 55256.0, 11),
+('Exxon Mobil', 'Energy', 'Oil & Gas Operations', 'United States', 263910.0, 15850.0, 12),
+('Berkshire Hathaway', 'Financials', 'Diversified Financials', 'United States', 247837.0, 8971.0, 13),
+('Samsung Electronics', 'Information Technology', 'Electronics', 'South Korea', 245898.0, 19783.3, 14),
+('McKesson', 'Health Care', 'Health Care: Pharmacy and Other Services', 'United States', 231091.0, 5070.0, 15),
+('Glencore', 'Materials', 'Diversified Metals & Mining', 'Switzerland', 219754.0, 5436.0, 16),
+('UnitedHealth Group', 'Health Care', 'Health Care: Insurance and Managed Care', 'United States', 201159.0, 13650.0, 17),
+('Daimler', 'Consumer Discretionary', 'Auto & Truck Manufacturers', 'Germany', 197515.0, 8245.1, 18),
+('CVS Health', 'Health Care', 'Health Care: Pharmacy and Other Services', 'United States', 194579.0, 6634.0, 19),
+('AT&T', 'Telecommunication Services', 'Telecommunications', 'United States', 181193.0, 13906.0, 20),
+('Foxconn', 'Technology', 'Electronics', 'Taiwan', 175617.0, 4103.4, 21),
+('General Motors', 'Consumer Discretionary', 'Auto & Truck Manufacturers', 'United States', 174049.0, 6710.0, 22),
+('Verizon Communications', 'Telecommunication Services', 'Telecommunications', 'United States', 170756.0, 19225.0, 23),
+('Total', 'Energy', 'Oil & Gas Operations', 'France', 149769.0, 7480.0, 24),
+('IBM', 'Information Technology', 'Information Technology Services', 'United States', 141682.0, 6606.0, 25),
+('Ford Motor', 'Consumer Discretionary', 'Auto & Truck Manufacturers', 'United States', 140545.0, 6471.0, 26),
+('Hon Hai Precision Industry', 'Technology', 'Electronics', 'Taiwan', 135129.0, 4493.3, 27),
+('Trafigura Group', 'Energy', 'Trading', 'Singapore', 131638.0, 975.0, 28),
+('General Electric', 'Industrials', 'Diversified Industrials', 'United States', 126661.0, 5136.0, 29),
+('AmerisourceBergen', 'Health Care', 'Wholesalers: Health Care', 'United States', 122848.0, 1605.5, 30),
+('Fannie Mae', 'Financials', 'Diversified Financials', 'United States', 120472.0, 18418.0, 31),
+('Trafigura Group', 'Energy', 'Trading', 'Switzerland', 120438.0, 975.0, 32),
+('Koch Industries', 'Diversified', 'Diversified', 'United States', 115095.0, 5142.0, 33),
+('Cardinal Health', 'Health Care', 'Wholesalers: Health Care', 'United States', 113982.0, 1377.0, 34),
+('Alphabet', 'Technology', 'Internet Services and Retailing', 'United States', 110855.0, 18616.0, 35),
+('Chevron', 'Energy', 'Oil & Gas Operations', 'United States', 110360.0, 5520.0, 36),
+('Costco Wholesale', 'Consumer Discretionary', 'General Merchandisers', 'United States', 110215.0, 2115.0, 37),
+('Cardinal Health', 'Health Care', 'Health Care: Pharmacy and Other Services', 'United States', 109838.0, 1718.0, 38),
+('Ping An Insurance Group', 'Financials', 'Insurance', 'China', 109254.0, 2047.4, 39),
+('Walgreens Boots Alliance', 'Consumer Staples', 'Food and Drug Stores', 'United States', 109026.0, 4563.0, 40),
+('Costco Wholesale', 'Consumer Discretionary', 'Retailing', 'United States', 105156.0, 2115.0, 41),
+('JPMorgan Chase', 'Financials', 'Diversified Financials', 'United States', 105153.0, 30615.0, 42),
+('Verizon Communications', 'Telecommunication Services', 'Telecommunications', 'United States', 104887.0, 13568.0, 43),
+('China Construction Bank', 'Financials', 'Banks', 'China', 104693.0, 38369.0, 44),
+('China Construction Bank', 'Financials', 'Major Banks', 'China', 104692.9, 38369.2, 45),
+('Trafigura Group', 'Energy', 'Trading', 'Netherlands', 103752.0, 975.0, 46),
+('Exor Group', 'Financials', 'Diversified Financials', 'Netherlands', 103606.6, -611.2, 47),
+('Anheuser-Busch InBev', 'Consumer Staples', 'Beverages', 'Belgium', 101541.0, 9536.0, 48),
+('Bank of America', 'Financials', 'Banks', 'United States', 100264.0, 18724.0, 49),
+('Bank of China', 'Financials', 'Banks', 'China', 99237.3, 28202.1, 50),
+('Trafigura Group', 'Energy', 'Trading', 'Switzerland', 97296.0, 975.0, 51),
+('Dell Technologies', 'Technology', 'Computers, Office Equipment', 'United States', 94477.0, 2743.0, 52),
+('CVS Health', 'Health Care', 'Health Care: Insurance and Managed Care', 'United States', 94005.0, 6239.0, 53),
+('Trafigura Group', 'Energy', 'Trading', 'United Kingdom', 90345.0, 975.0, 54),
+('Trafigura Group', 'Energy', 'Trading', 'Switzerland', 88265.0, 975.0, 55),
+('Trafigura Group', 'Energy', 'Trading', 'Netherlands', 88111.0, 975.0, 56),
+('Trafigura Group', 'Energy', 'Trading', 'Switzerland', 87044.0, 975.0, 57),
+('Trafigura Group', 'Energy', 'Trading', 'Switzerland', 84795.0, 975.0, 58),
+('Trafigura Group', 'Energy', 'Trading', 'Switzerland', 84361.0, 975.0, 59),
+('Trafigura Group', 'Energy', 'Trading', 'Switzerland', 83156.0, 975.0, 60),
+('Trafigura Group', 'Energy', 'Trading', 'Switzerland', 82276.0, 975.0, 61);
+
+select * from(
+select *,
+rank() over(partition by country order by profits) as rn
+from cricket_dataset.forbes_global)
+where rn=1
+
+--Find out each sector top 2 most profitable company details
+select * from(
+select *,
+dense_rank() over(partition by industry order by profits) as rn
+from cricket_dataset.forbes_global)
+where rn<=2
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*You are given a table of New York housing  price called house_transactions with columns id, state, city, street_address, mkt_price
+
+Identify properites where the mkt_price of the house exceeds the city's average mkt_price.*/
+
+-- Create the table
+CREATE TABLE cricket_dataset.house_price (
+    id INT64,
+    state string,
+    city string,
+    street_address string,
+    mkt_price INT64
+);
+-- Insert all the records
+INSERT INTO cricket_dataset.house_price (id, state, city, street_address, mkt_price) VALUES
+(1, 'NY', 'New York City', '66 Trout Drive', 449761),
+(2, 'NY', 'New York City', 'Atwater', 277527),
+(3, 'NY', 'New York City', '58 Gates Street', 268394),
+(4, 'NY', 'New York City', 'Norcross', 279929),
+(5, 'NY', 'New York City', '337 Shore Ave.', 151592),
+(6, 'NY', 'New York City', 'Plainfield', 624531),
+(7, 'NY', 'New York City', '84 Central Street', 267345),
+(8, 'NY', 'New York City', 'Passaic', 88504),
+(9, 'NY', 'New York City', '951 Fulton Road', 270476),
+(10, 'NY', 'New York City', 'Oxon Hill', 118112),
+(11, 'CA', 'Los Angeles', '692 Redwood Court', 150707),
+(12, 'CA', 'Los Angeles', 'Lewiston', 463180),
+(13, 'CA', 'Los Angeles', '8368 West Acacia Ave.', 538865),
+(14, 'CA', 'Los Angeles', 'Pearl', 390896),
+(15, 'CA', 'Los Angeles', '8206 Old Riverview Rd.', 117754),
+(16, 'CA', 'Los Angeles', 'Seattle', 424588),
+(17, 'CA', 'Los Angeles', '7227 Joy Ridge Rd.', 156850),
+(18, 'CA', 'Los Angeles', 'Battle Ground', 643454),
+(19, 'CA', 'Los Angeles', '233 Bedford Ave.', 713841),
+(20, 'CA', 'Los Angeles', 'Saint Albans', 295852),
+(21, 'IL', 'Chicago', '8830 Baker St.', 12944),
+(22, 'IL', 'Chicago', 'Watertown', 410766),
+(23, 'IL', 'Chicago', '632 Princeton St.', 160696),
+(24, 'IL', 'Chicago', 'Waxhaw', 464144),
+(25, 'IL', 'Chicago', '7773 Tailwater Drive', 129393),
+(26, 'IL', 'Chicago', 'Bonita Springs', 174886),
+(27, 'IL', 'Chicago', '31 Summerhouse Rd.', 296008),
+(28, 'IL', 'Chicago', 'Middleburg', 279000),
+(29, 'IL', 'Chicago', '273 Windfall Avenue', 424846),
+(30, 'IL', 'Chicago', 'Graham', 592268),
+(31, 'TX', 'Houston', '91 Canterbury Dr.', 632014),
+(32, 'TX', 'Houston', 'Dallas', 68868),
+(33, 'TX', 'Houston', '503 Elmwood St.', 454184),
+(34, 'TX', 'Houston', 'Kennewick', 186280),
+(35, 'TX', 'Houston', '739 Chapel Street', 334474),
+(36, 'TX', 'Houston', 'San Angelo', 204460),
+(37, 'TX', 'Houston', '572 Parker Dr.', 678443),
+(38, 'TX', 'Houston', 'Bellmore', 401090),
+(39, 'TX', 'Houston', '8653 South Oxford Street', 482214),
+(40, 'TX', 'Houston', 'Butler', 330868),
+(41, 'AZ', 'Phoenix', '8667 S. Joy Ridge Court', 316291),
+(42, 'AZ', 'Phoenix', 'Torrance', 210392),
+(43, 'AZ', 'Phoenix', '35 Harvard St.', 167502),
+(44, 'AZ', 'Phoenix', 'Nutley', 327554),
+(45, 'AZ', 'Phoenix', '7313 Vermont St.', 285135),
+(46, 'AZ', 'Phoenix', 'Lemont', 577667),
+(47, 'AZ', 'Phoenix', '8905 Buttonwood Dr.', 212301),
+(48, 'AZ', 'Phoenix', 'Lafayette', 317504);
+
+--solutin for only new york city
+SELECT id,state,city,mkt_price
+FROM cricket_dataset.house_price
+where mkt_price > (select avg(mkt_price) from cricket_dataset.house_price where city='New York City')
+
+--using correlated query
+SELECT h1.id,h1.state,h1.city,h1.mkt_price
+FROM cricket_dataset.house_price h1
+where h1.mkt_price > (select avg(h2.mkt_price) from cricket_dataset.house_price h2 where h2.city=h1.city)
+
+--Write a query to find the property that has house mkt_price greater 
+-- than average of the city's average price but less than nation's average price
+SELECT h1.id,h1.state,h1.city,h1.mkt_price
+FROM cricket_dataset.house_price h1
+where h1.mkt_price > (select avg(h2.mkt_price) from cricket_dataset.house_price h2 where h2.city=h1.city) and
+h1.mkt_price < (select avg(h.mkt_price)from house_price as h);
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+-- Amazon Data Analyst interview questions for exp 1-3 year!
+
+You have two tables: Orders and Customers.
+
+ - Orders Table Columns: 
+Order_id, Customer_id, Order_Date, Amount
+
+- Customers Table Columns: 
+Customer_id, Customer_Name, Join_Date
+ 
+Write an SQL query to calculate the total order amount for each customer who joined 
+in the current year. 
+
+The output should contain Customer_Name and the total amount.
+*/
+DROP TABLE IF EXISTS cricket_dataset.orders;
+-- Create Orders table
+CREATE TABLE cricket_dataset.orders (
+    Order_id INT64,
+    Customer_id INT64,
+    Order_Date DATE,
+    Amount float64
+);
+
+DROP TABLE IF EXISTS cricket_dataset.customers;
+-- Create Customers table
+CREATE TABLE cricket_dataset.customers (
+    Customer_id INT64,
+    Customer_Name string,
+    Join_Date DATE
+);
+
+-- Insert records into Orders table
+INSERT INTO cricket_dataset.orders (Order_id, Customer_id, Order_Date, Amount)
+VALUES
+    (1, 1, '2024-05-01', 100),
+    (2, 2, '2024-05-02', 150),
+    (3, 3, '2023-12-15', 200),
+    (4, 1, '2024-05-03', 120),
+    (5, 2, '2024-01-20', 180),
+    (6, 4, '2024-03-10', 90);
+
+-- Insert records into Customers table
+INSERT INTO cricket_dataset.customers (Customer_id, Customer_Name, Join_Date)
+VALUES
+    (1, 'Alice', '2024-01-15'),
+    (2, 'Bob', '2024-02-20'),
+    (3, 'Charlie', '2023-12-01'),
+    (4, 'David', '2024-03-01');
+
+-- join both table based on cx id
+-- filter the cx records for current_year 
+-- based on eacx cx id sum the amount
+-- group by cx id
+
+select c.Customer_id,c.Customer_Name,sum(o.Amount) as total_sum from cricket_dataset.customers c
+join cricket_dataset.orders o
+on c.Customer_id=o.Customer_id
+where extract(YEAR from c.Join_Date) = extract(YEAR from current_date)
+group by Customer_id,Customer_Name
+order by Customer_id
+
+--Write a SQL query to return each and total orders for current year
+-- return month_number, total orders
+select extract(MONTH from Order_Date) as month_number,count(Order_id) as total_orders from cricket_dataset.orders
+where extract(YEAR from Order_Date) = extract(YEAR from current_date)
+group by extract(MONTH from Order_date)
+order by 1
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
