@@ -2801,6 +2801,286 @@ where extract(YEAR from Order_Date) = extract(YEAR from current_date)
 group by extract(MONTH from Order_date)
 order by 1
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+Write an SQL query to display inventory details including the product name, quantity in stock, remaining stock level ('Medium' if quantity is
+more than 10, 'Low' otherwise), and supplier ID. 
+
+Assume each product has a unique supplier ID associated with it.
+*/
+
+DROP TABLE IF EXISTS cricket_dataset.inventory;
+CREATE TABLE cricket_dataset.inventory (
+    product_id int64,
+    product_name string,
+    quantity INT64,
+    price_per_unit FLOAT64
+);
 
 
+INSERT INTO cricket_dataset.inventory (product_id,product_name, quantity, price_per_unit)
+VALUES
+    (1,'Laptop', 20, 999.99),
+    (2,'Smartphone', 15, 699.99),
+    (3,'Tablet', 8, 399.99),
+    (4,'Headphones', 25, 149.99),
+    (5,'Mouse', 30, 29.99),
+    (6,'Wireless Earbuds', 12, 79.99),
+    (7,'Portable Charger', 10, 49.99),
+    (8,'Bluetooth Speaker', 18, 129.99),
+    (9,'Fitness Tracker', 7, 89.99),
+    (10,'External Hard Drive', 9, 149.99),
+    (11,'Gaming Mouse', 14, 59.99),
+    (12,'USB-C Cable', 22, 19.99),
+    (13,'Smart Watch', 6, 199.99),
+    (14,'Desk Lamp', 11, 34.99),
+    (15,'Power Bank', 16, 39.99),
+    (16,'Wireless Mouse', 13, 29.99),
+    (17,'Bluetooth Headset', 20, 59.99),
+    (18,'MicroSD Card', 5, 24.99),
+    (19,'USB Flash Drive', 8, 14.99),
+    (20,'HDMI Cable', 17, 9.99);
+
+
+-- product name, quantity in stock, stock level
+-- qty > 10 medium, Low
+-- supplier ID
+
+select *,
+case when quantity>10 then 'Medium' else 'Low' end as Category_Label
+from cricket_dataset.inventory
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*You are given customers and orders table with columns customers has columns cx_id, cx_name, city, country
+orders table has COLUMNS order_id, cx_id, order_date, totalamount
+
+Write an SQL query to retrive customer details along with their total order amounts(if any).
+Include the customer's name, city, country, and total order amount. 
+If a customer hasn't placed any orders,display 'NULL' for the total order amount."*/
+
+DROP TABlE IF EXISTS cricket_dataset.customers;
+DROP TABlE IF EXISTS cricket_dataset.orders;
+
+
+CREATE TABLE cricket_dataset.customers (
+    CustomerID INT64,
+    CustomerName string,
+    City string,
+    Country string
+);
+
+CREATE TABLE cricket_dataset.orders (
+    OrderID INT64,
+    CustomerID INT64,
+    OrderDate DATE,
+    TotalAmount float64,
+);
+
+-- Insert records into the 'Customers' table
+INSERT INTO cricket_dataset.customers (CustomerID, CustomerName, City, Country) 
+VALUES 
+(1, 'John Doe', 'New York', 'USA'),
+(2, 'Jane Smith', 'Los Angeles', 'USA'),
+(3, 'Michael Johnson', 'Chicago', 'USA'),
+(4, 'Emily Brown', 'Houston', 'USA');
+
+-- Insert records into the 'Orders' table
+INSERT INTO cricket_dataset.orders (OrderID, CustomerID, OrderDate, TotalAmount) 
+VALUES 
+(101, 1, '2024-05-10', 150.00),
+(102, 2, '2024-05-11', 200.00),
+(103, 1, '2024-05-12', 100.00),
+(104, 3, '2024-05-13', 300.00);
+
+
+SELECT * FROM cricket_dataset.customers;
+SELECT * FROM cricket_dataset.orders;
+
+--do left join
+
+SELECT c.*,
+sum(o.TotalAmount) as total
+FROM cricket_dataset.customers c
+left join cricket_dataset.orders o
+on c.CustomerID=o.CustomerID
+group by 1
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+You are given a orders table with columns order_id, order_date
+Identify the busiest day for orders along with the total number of orders placed on that day. 
+*/
+
+DROP TABLE IF EXISTS cricket_dataset.orders;
+-- Create table for orders
+CREATE TABLE cricket_dataset.orders (
+    order_id int64,
+    order_date DATE
+);
+
+-- Insert sample records for orders
+INSERT INTO cricket_dataset.orders (order_id,order_date)
+VALUES
+    (1,'2024-05-01'),
+    (2,'2024-05-01'),
+    (3,'2024-05-01'),
+    (4,'2024-05-02'),
+    (5,'2024-05-02'),
+    (6,'2024-05-02'),
+    (7,'2024-05-03'),
+    (8,'2024-05-03'),
+    (9,'2024-05-03'),
+    (10,'2024-05-03'),
+    (11,'2024-05-03'),
+    (12,'2024-05-04'),
+    (13,'2024-05-04'),
+    (14,'2024-05-04'),
+    (15,'2024-05-04'),
+    (16,'2024-05-04'),
+    (17,'2024-05-05'),
+    (18,'2024-05-05'),
+    (19,'2024-05-05'),
+    (20,'2024-05-05'),
+    (21,'2024-05-06'),
+    (22,'2024-05-06'),
+    (23,'2024-05-06'),
+    (24,'2024-05-06'),
+    (25,'2024-05-06');
+
+--just group by order_date
+select order_date,count(*) as total_orders from cricket_dataset.orders
+group by order_date
+
+--for max orders on which day
+select order_date,count(*) as total_orders from cricket_dataset.orders
+group by order_date
+order by order_date desc
+limit 1
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+-- You have two tables, sellers and orders. 
+sellers table columns are seller_id, seller_name
+orders table has columns seller_id, product_id, category, quantity, price_per_unit
+Write an SQL query to find each seller's revenue from each category and each product.
+return seller_name, total_revenue in each product inside each category
+*/
+
+DROP TABLE IF EXISTS cricket_dataset.sellers;
+DROP TABLE IF EXISTS cricket_dataset.orders;
+-- Create table for sellers
+CREATE TABLE cricket_dataset.sellers (
+    seller_id int64,
+    seller_name string
+);
+
+-- Insert sample records into the sellers table
+INSERT INTO cricket_dataset.sellers (seller_id,seller_name)
+VALUES 
+    (1,'Seller A'),
+    (2,'Seller B'),
+    (3,'Seller C');
+
+-- Create table for orders
+CREATE TABLE cricket_dataset.orders (
+    order_id int64,
+    seller_id INT64,
+    product_id INT64,
+    category string,
+    quantity INT64,
+    price_per_unit FLOAT64
+);
+
+-- Insert sample records into the orders table
+INSERT INTO cricket_dataset.orders (order_id,seller_id, product_id, category, quantity, price_per_unit)
+VALUES 
+    (1,1, 1, 'Electronics', 2, 999.99),
+    (2,1, 2, 'Electronics', 3, 699.99),
+    (3,2, 3, 'Home & Kitchen', 1, 49.99),
+    (4,2, 4, 'Home & Kitchen', 2, 79.99),
+    (5,2, 5, 'Electronics', 1, 29.99),
+    (6,3, 1, 'Electronics', 2, 999.99),
+    (7,3, 4, 'Home & Kitchen', 1, 79.99),
+    (8,1, 3, 'Home & Kitchen', 2, 49.99),
+    (9,2, 1, 'Electronics', 1, 999.99),
+    (10,3, 2, 'Electronics', 1, 699.99),
+    (11,1, 4, 'Home & Kitchen', 3, 79.99),
+    (12,2, 2, 'Electronics', 2, 699.99),
+    (13,3, 3, 'Home & Kitchen', 1, 49.99),
+    (14,1, 5, 'Electronics', 2, 29.99),
+    (15,2, 4, 'Home & Kitchen', 1, 79.99),
+    (16,3, 1, 'Electronics', 1, 999.99),
+    (17,1, 2, 'Electronics', 1, 699.99),
+    (18,2, 3, 'Home & Kitchen', 2, 49.99),
+    (19,3, 5, 'Electronics', 1, 29.99),
+    (20,1, 3, 'Home & Kitchen', 1, 49.99),
+    (21,2, 1, 'Electronics', 3, 999.99),
+    (22,3, 2, 'Electronics', 2, 699.99),
+    (23,1, 4, 'Home & Kitchen', 1, 79.99),
+    (24,2, 2, 'Electronics', 1, 699.99),
+    (25,3, 3, 'Home & Kitchen', 3, 49.99),
+    (26,1, 5, 'Electronics', 1, 29.99);
+
+-- seller_name get from seller_table
+-- category_name orders TABLE
+-- product_id
+-- revenue    
+
+select s.seller_name,o.category,o.product_id,sum(o.price_per_unit*o.quantity) as total_rev
+from cricket_dataset.orders o
+join cricket_dataset.sellers s
+on s.seller_id=o.seller_id
+group by 1,2,3
+order by 1,3
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+You have orders table with columns order_id, customer_id, order_date, total_amount
+Calculate the running total of orders for each customer. 
+Return the customer ID, order date, total amount of each order, and the cumulative total of orders for each customer sorted by customer ID and order date.
+*/
+DROP TABLE IF EXISTS cricket_dataset.orders;
+-- Create table
+CREATE TABLE cricket_dataset.orders (
+    order_id int64,
+    customer_id INT64,
+    order_date DATE,
+    total_amount FLOAT64
+);
+
+-- Insert records
+INSERT INTO cricket_dataset.orders (order_id,customer_id, order_date, total_amount)
+VALUES
+    (1,1001, '2024-01-01', 120.25),
+    (2,1002, '2024-01-03', 80.99),
+    (3,1003, '2024-01-05', 160.00),
+    (4,1004, '2024-01-07', 95.50),
+    (5,1001, '2024-02-09', 70.75),
+    (6,1002, '2024-02-11', 220.00),
+    (7,1003, '2024-02-13', 130.50),
+    (8,1004, '2024-02-15', 70.25),
+    (9,1001, '2024-02-17', 60.75),
+    (10,1002, '2024-03-19', 180.99),
+    (11,1003, '2024-03-21', 140.00),
+    (12,1004, '2024-03-23', 110.50),
+    (13,1001, '2024-03-25', 90.25),
+    (14,1002, '2024-03-27', 200.00),
+    (15,1003, '2024-03-29', 160.50),
+    (16,1004, '2024-03-31', 120.75),
+    (17,1001, '2024-03-02', 130.25),
+    (18,1002, '2024-03-04', 90.99),
+    (19,1003, '2024-03-06', 170.00),
+    (20,1004, '2024-04-08', 105.50),
+    (21,1001, '2024-04-10', 80.75),
+    (22,1002, '2024-04-12', 240.00),
+    (23,1003, '2024-04-14', 150.50),
+    (24,1004, '2024-04-16', 80.25),
+    (25,1001, '2024-04-18', 70.75);
+
+--use partition by
+select *,
+sum(total_amount) over(partition by customer_id order by order_date desc) as running_sum
+from cricket_dataset.orders
+
+---- Find each customer_id and revenue collected from them in each month
+select customer_id,extract(month from order_date) as month_number,sum(total_amount) as revenue_collected
+from cricket_dataset.orders
+group by customer_id,2
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
