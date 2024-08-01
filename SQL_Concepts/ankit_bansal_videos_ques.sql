@@ -756,3 +756,32 @@ order by customer_id)
 select order_date,sum(cte2.first_flag) as new_customers,sum(cte2.repeat_flag) as repeat_customers,sum(cte2.order_amount) as total_order_amt
 from cte2
 group by order_date
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--figure out how many matches played by team,wins and loses by each team.
+
+create table cricket_dataset.icc_world_cup
+(
+Team_1 string,
+Team_2 string,
+Winner string
+);
+INSERT INTO cricket_dataset.icc_world_cup values('India','SL','India');
+INSERT INTO cricket_dataset.icc_world_cup values('SL','Aus','Aus');
+INSERT INTO cricket_dataset.icc_world_cup values('SA','Eng','Eng');
+INSERT INTO cricket_dataset.icc_world_cup values('Eng','NZ','NZ');
+INSERT INTO cricket_dataset.icc_world_cup values('Aus','India','India');
+
+--first take team_1 and compare it with winnerif same then 1 else 0
+--same for Team_2 by doing union all where we will get all the wins and loses
+--
+select subquery.team_name,count(1) as no_of_matches_played,sum(win_flag) as no_of_wins,count(1)-sum(win_flag) as no_of_losses
+from (
+select Team_1 as team_name,
+case when Team_1=Winner then 1 else 0 end as win_flag,
+from cricket_dataset.icc_world_cup
+union all
+select Team_2 as team_name,
+case when Team_2=Winner then 1 else 0 end as win_flag
+from cricket_dataset.icc_world_cup) as subquery
+group by subquery.team_name
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
