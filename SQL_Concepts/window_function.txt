@@ -237,3 +237,280 @@ from(
 	round(percent_rank() over(order by price)::numeric * 100,2) as per_rank
 	from product) x
 where x.product_name='galaxy z fold 3';
+-------------------------------------------------------------------------------
+/* Problem Statement:
+- For pairs of brands in the same year (e.g. apple/samsung/2020 and samsung/apple/2020) 
+    - if custom1 = custom3 and custom2 = custom4 : then keep only one pair
+
+- For pairs of brands in the same year 
+    - if custom1 != custom3 OR custom2 != custom4 : then keep both pairs
+
+- For brands that do not have pairs in the same year : keep those rows as well
+*/
+
+
+DROP TABLE IF EXISTS brands;
+CREATE TABLE brands 
+(
+    brand1      VARCHAR(20),
+    brand2      VARCHAR(20),
+    year        INT,
+    custom1     INT,
+    custom2     INT,
+    custom3     INT,
+    custom4     INT
+);
+INSERT INTO brands VALUES ('apple', 'samsung', 2020, 1, 2, 1, 2);
+INSERT INTO brands VALUES ('samsung', 'apple', 2020, 1, 2, 1, 2);
+INSERT INTO brands VALUES ('apple', 'samsung', 2021, 1, 2, 5, 3);
+INSERT INTO brands VALUES ('samsung', 'apple', 2021, 5, 3, 1, 2);
+INSERT INTO brands VALUES ('google', NULL, 2020, 5, 9, NULL, NULL);
+INSERT INTO brands VALUES ('oneplus', 'nothing', 2020, 5, 9, 6, 3);
+
+SELECT * FROM brands;
+
+WITH CTE as
+   (select *,
+    case when brand1 < brand2 then concat(brand1,brand2,year)
+    else concat(brand2,brand1,year) end as pair_id
+    from `cricket_dataset.brands`),
+    CTE_RN as
+    (select *, row_number() over(partition by pair_id order by pair_id) as rn
+    from CTE)
+
+select * from CTE_RN where rn=1 or (custom1 <> custom3 and custom2 <> custom4)
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+INPUT	
+Derive the expected output					
+ID	NAME	LOCATION				
+1						
+2	David					
+3			London				
+4						
+5	David					
+										
+EXPECTED OUTPUT - 1			EXPECTED OUTPUT - 2		
+ID	NAME	LOCATION		ID	NAME	LOCATION
+1	David	London			5	David	London
+
+
+drop table if exists Q4_data;
+create table Q4_data
+(
+	id			int,
+	name		varchar(20),
+	location	varchar(20)
+);
+insert into Q4_data values(1,null,null);
+insert into Q4_data values(2,'David',null);
+insert into Q4_data values(3,null,'London');
+insert into Q4_data values(4,null,null);
+insert into Q4_data values(5,'David',null);
+
+select * from Q4_data;
+
+-- OUTPUT 1
+select min(id) as id
+, min(name) as name
+, min(location) as location
+from Q4_data;
+
+
+
+-- OUTPUT 2
+select max(id) as id
+, min(name) as name
+, min(location) as location
+from Q4_data;
+
+---------------------------------------------------------------------------------------------------
+You are given a table having the marks of one student in every test. 
+You have to output the tests in which the student has improved his performance. 
+For a student to improve his performance he has to score more than the previous test.
+Provide 2 solutions, one including the first test score and second excluding it.
+
+drop table if exists  `cricket_dataset.student_tests`;
+create table `cricket_dataset.student_tests`
+(
+	test_id	int64,
+	marks	int64
+);
+insert into `cricket_dataset.student_tests` values(100, 55);
+insert into `cricket_dataset.student_tests` values(101, 55);
+insert into `cricket_dataset.student_tests` values(102, 60);
+insert into `cricket_dataset.student_tests` values(103, 58);
+insert into `cricket_dataset.student_tests` values(104, 40);
+insert into `cricket_dataset.student_tests` values(105, 50);
+
+select * from `cricket_dataset.student_tests`;
+
+--always remember when you have to use previous and next records 
+--use lead or lag window functions
+
+--approach1
+--with first record
+
+select test_id,marks from (
+	select *,
+	lag(marks,1,0) over(order by test_id) as prev_marks --1 is default value to check prev record and 0 is for replacing null(or default value we set for first record)
+	from  `cricket_dataset.student_tests`) as x
+where x.marks > x.prev_marks;
+
+--approach2
+--without first record
+select test_id,marks from (
+	select *,
+	lag(marks,1,marks) over(order by test_id) as prev_marks --1 is default value to check prev record and marks is for replacing null( or our default first value)
+	from  `cricket_dataset.student_tests`) as x
+where x.marks > x.prev_marks;
+----------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS `cricket_dataset.FOOTER`;
+CREATE TABLE `cricket_dataset.FOOTER` 
+(
+	id 			INT64,
+	car 		string, 
+	lengtho 		INT64, 
+	width 		INT64, 
+	height 		INT64
+);
+
+INSERT INTO `cricket_dataset.FOOTER` VALUES (1, 'Hyundai Tucson', 15, 6, NULL);
+INSERT INTO `cricket_dataset.FOOTER` VALUES (2, NULL, NULL, NULL, 20);
+INSERT INTO `cricket_dataset.FOOTER` VALUES (3, NULL, 12, 8, 15);
+INSERT INTO `cricket_dataset.FOOTER` VALUES (4, 'Toyota Rav4', NULL, 15, NULL);
+INSERT INTO `cricket_dataset.FOOTER` VALUES (5, 'Kia Sportage', NULL, NULL, 18); 
+
+SELECT * FROM `cricket_dataset.FOOTER`;
+
+with cte as
+	(select *
+	, sum(case when car is null then 0 else 1 end) over(order by id) as car_segment
+	, sum(case when lengtho is null then 0 else 1 end) over(order by id) as length_segment
+	, sum(case when width is null then 0 else 1 end) over(order by id) as width_segment
+	, sum(case when height is null then 0 else 1 end) over(order by id) as height_segment
+	from `cricket_dataset.FOOTER`)
+select 
+  first_value(car) over(partition by car_segment order by id) as new_car
+, first_value(lengtho) over(partition by length_segment order by id) as new_length 
+, first_value(width) over(partition by width_segment order by id) as new_width
+, first_value(height) over(partition by height_segment order by id) as new_height
+from cte 
+order by id desc
+limit 1;
+
+-----------------------------------------------------------------------------------------
+join practice
+
+create table if not exists `cricket_dataset.demo2` (ID int64);
+insert into `cricket_dataset.demo1`(ID) values (null);
+insert into `cricket_dataset.demo2`(ID) values (null);
+insert into `cricket_dataset.demo2`(ID) values (1);
+insert into `cricket_dataset.demo2`(ID) values (2);
+insert into `cricket_dataset.demo2`(ID) values (2);
+insert into `cricket_dataset.demo2`(ID) values (3);
+
+select * from `cricket_dataset.demo2`;
+select * from `cricket_dataset.demo1`;
+
+--count of duplicates in a table
+select ID, count(*) from `cricket_dataset.demo1` group by ID;
+
+--inner join
+select * from `cricket_dataset.demo1` as a
+inner join `cricket_dataset.demo2` b
+on a.ID=b.ID
+
+--left join
+select * from `cricket_dataset.demo1` as a
+left join `cricket_dataset.demo2` b
+on a.ID=b.ID
+
+--right join
+select * from `cricket_dataset.demo1` as a
+right join `cricket_dataset.demo2` b
+on a.ID=b.ID
+
+--full outer join
+select * from `cricket_dataset.demo1` as a
+full outer join `cricket_dataset.demo2` b
+on a.ID=b.ID
+
+-------------------------------------------------------------------------------------------------------------------------
+Aggregation function practice
+
+CREATE TABLE `cricket_dataset.aggre`(
+ order_number int64,
+ order_date date,
+ cust_id int64,
+ salesperson_id int64,
+ amount float64
+)
+
+select * from `cricket_dataset.aggre` order by salesperson_id
+
+INSERT into `cricket_dataset.aggre` (order_number, order_date, cust_id, salesperson_id, amount) VALUES (30, CAST('1995-07-14' AS Date), 9, 1, 460);
+INSERT into `cricket_dataset.aggre` (order_number, order_date, cust_id, salesperson_id, amount) VALUES (10, CAST('1996-08-02' AS Date), 4, 2, 540);
+INSERT into `cricket_dataset.aggre` (order_number, order_date, cust_id, salesperson_id, amount) VALUES (40, CAST('1998-01-29' AS Date), 7, 2, 2400);
+INSERT into `cricket_dataset.aggre` (order_number, order_date, cust_id, salesperson_id, amount) VALUES (50, CAST('1998-02-03' AS Date), 6, 7, 600);
+INSERT into `cricket_dataset.aggre` (order_number, order_date, cust_id, salesperson_id, amount) VALUES (60, CAST('1998-03-02' AS Date), 6, 7, 720);
+INSERT into `cricket_dataset.aggre` (order_number, order_date, cust_id, salesperson_id, amount) VALUES (70, CAST('1998-05-06' AS Date), 9, 7, 150);
+INSERT into `cricket_dataset.aggre` (order_number, order_date, cust_id, salesperson_id, amount) VALUES (20, CAST('1999-01-30' AS Date), 4, 8, 1800);
+
+--sum()
+select sum(amount) from `cricket_dataset.aggre`
+
+--sum() with group by
+select cust_id,sum(amount) from `cricket_dataset.aggre` group by cust_id
+ 
+--sum() with window function
+select cust_id,sum(amount) over(partition by salesperson_id) from `cricket_dataset.aggre`
+--gives the sum by partitioning
+select cust_id,amount, salesperson_id, sum(amount) over(partition by salesperson_id order by order_date) from `cricket_dataset.aggre`
+--with just order by we get running sum
+select cust_id,amount, salesperson_id, sum(amount) over(order by order_date) from `cricket_dataset.aggre`
+
+--sum() with rows between
+select cust_id,amount, salesperson_id, sum(amount) over(order by order_date rows between 2 preceding and current row) from `cricket_dataset.aggre`
+
+select cust_id,amount, salesperson_id, sum(amount) over(order by order_date rows between unbounded preceding and current row) from `cricket_dataset.aggre`
+--these methods also give us running sum
+
+--lag without using functions
+select cust_id,amount, salesperson_id, sum(amount) over(order by order_date rows between 1 preceding and 1 preceding) from `cricket_dataset.aggre`
+
+--lead without using functions
+select cust_id,amount, salesperson_id, sum(amount) over(order by order_date rows between 1 following and 1 following) from `cricket_dataset.aggre`
+
+----------------------------------------------------------------------------------------------------------------------------------
+--find the change in employee status from previous year to current year
+
+create table `cricket_dataset.emp_2020`
+(
+emp_id int64,
+designation string
+);
+
+create table `cricket_dataset.emp_2021`
+(
+emp_id int64,
+designation string
+)
+
+insert into `cricket_dataset.emp_2020` values (1,'Trainee'), (2,'Developer'),(3,'Senior Developer'),(4,'Manager');
+insert into `cricket_dataset.emp_2021` values (1,'Developer'), (2,'Developer'),(3,'Manager'),(5,'Trainee');
+
+select * from `cricket_dataset.emp_2021`;
+
+select * from `cricket_dataset.emp_2020`;
+
+--left,right and inner join will not give us all rows hence we will use full_outer_join
+--once applying full join, in where condition, will use fill-null-or-empty to get all values
+select ifnull(e20.emp_id,e21.emp_id) as emp_id,
+case when e20.designation != e21.designation then 'Promoted'
+when e21.designation is null then 'Resigned'
+else 'New' end as comment
+from `cricket_dataset.emp_2020` e20   --assuming there is no demotion in company
+full outer join `cricket_dataset.emp_2021` e21
+on e20.emp_id=e21.emp_id
+where ifnull(e20.designation,'xxx') != ifnull(e21.designation,'yyy')
