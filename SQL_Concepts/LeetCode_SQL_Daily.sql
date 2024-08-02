@@ -138,3 +138,12 @@ FROM person p
 INNER JOIN person p2 ON p.email = p2.email
 WHERE p.id > p2.id;
 ------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 577
+--577. Employee Bonus
+
+--use left join mainly and to eliminate >1000 reords use bonus is null condition.
+select e.name,b.bonus from employee e
+left join bonus b
+on e.empId=b.empId
+where b.bonus<1000 or b.bonus is null
+-------------------------------------------------------------------------------------------------------------------------------
