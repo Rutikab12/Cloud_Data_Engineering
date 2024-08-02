@@ -128,3 +128,13 @@ select name as 'Customers'
 from Customers
 where id not in (select customerId from orders);
 --------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 196
+--196. Delete Duplicate Emails
+
+-- delete from person
+-- where id not in(select min(id) from person group by email);
+DELETE p 
+FROM person p
+INNER JOIN person p2 ON p.email = p2.email
+WHERE p.id > p2.id;
+------------------------------------------------------------------------------------------------------------------------------------
