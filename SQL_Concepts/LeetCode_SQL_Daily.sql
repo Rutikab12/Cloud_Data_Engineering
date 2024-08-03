@@ -137,7 +137,7 @@ DELETE p
 FROM person p
 INNER JOIN person p2 ON p.email = p2.email
 WHERE p.id > p2.id;
-------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------
 --LeetCode Problems: 577
 --577. Employee Bonus
 
@@ -146,4 +146,180 @@ select e.name,b.bonus from employee e
 left join bonus b
 on e.empId=b.empId
 where b.bonus<1000 or b.bonus is null
--------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 585
+--585. Investments in 2016
+
+--did not understand
+with cte as(
+select tiv_2016,
+count(*) over(partition by tiv_2015) as tiv_2015_cnt,
+count(*) over(partition by lat,lon) as lat_lan
+from Insurance)
+select round(sum(tiv_2016),2) as tiv_2016
+from cte
+WHERE tiv_2015_cnt > 1
+AND lat_lan = 1;
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems :586
+--586 : Customer Placing largest number of orders
+
+--using cte and selecting max cause if duplicate count comes, it should not be missed.
+with cte as(
+select customer_number,count(order_number) as cnt from Orders
+group by customer_number)
+select customer_number from cte
+where cnt=(select max(cnt) from cte);
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 595
+--595 : Big Countries
+--just use where condition
+select name , population , area from world where area >= 3000000 or population >= 25000000;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 596
+--596 :Classes with more than 5 students
+
+--use group by and count(class)
+select class from courses group by class having count(class)>=5;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems :597
+--597 : Friend Requests overall acceptance rate
+/*
+| sender_id | send_to_id |request_date|
+|-----------|------------|------------|
+| 1         | 2          | 2016_06-01 |
+| 1         | 3          | 2016_06-01 |
+| 1         | 4          | 2016_06-01 |
+| 2         | 3          | 2016_06-02 |
+| 3         | 4          | 2016-06-09 |
+*/
+
+create table cricket_dataset.friend_request(
+  sender_id int64,
+  send_to_id int64,
+  request_date date
+);
+
+insert into cricket_dataset.friend_request values(1,2,'2016-06-01'),(1,3,'2016-06-01'),(1,4,'2016-06-01'),(2,3,'2016-06-02'),(3,4,'2016-06-09');
+
+create table cricket_dataset.request_accepted(
+  requester_id int64,
+  accepter_id int64,
+  accept_date date
+);
+
+insert into cricket_dataset.request_accepted values(1,2,'2016-06-03'),(1,3,'2016-06-08'),(2,3,'2016-06-08'),(3,4,'2016-06-09'),(3,4,'2016-06-10');
+/*
+| requester_id | accepter_id |accept_date |
+|--------------|-------------|------------|
+| 1            | 2           | 2016_06-03 |
+| 1            | 3           | 2016-06-08 |
+| 2            | 3           | 2016-06-08 |
+| 3            | 4           | 2016-06-09 |
+| 3            | 4           | 2016-06-10 |
+*/
+
+select * from cricket_dataset.request_accepted;
+
+select * from cricket_dataset.friend_request;
+
+--Write a query to find the overall acceptance rate of requests rounded to 2 decimals, which is the number of acceptance divide the number of requests.
+
+/*Note:
+The accepted requests are not necessarily from the table friend_request. In this case, you just need to simply count the total accepted requests (no matter whether they are in the original requests), and divide it by the number of requests to get the acceptance rate.
+It is possible that a sender sends multiple requests to the same receiver, and a request could be accepted more than once. In this case, the ‘duplicated’ requests or acceptances are only counted once.
+If there is no requests at all, you should return 0.00 as the accept_rate.*/
+
+
+SELECT 
+ROUND(IFNULL(
+  (SELECT COUNT(DISTINCT requester_id, accepter_id) from cricket_dataset.request_accepted) / (SELECT COUNT(DISTINCT sender_id, send_to_id) from cricket_dataset.friend_request)
+  ,0),2) AS accept_rate;
+  
+/*
+accept_rate|
+------------
+0.80	   |
+*/
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 610
+--610 : Triangle Judgement
+
+--use case when with x+y=z and y+z=x and z+x=y then yes else no
+SELECT x, y, z,
+       CASE
+           WHEN x + y > z AND x + z > y AND y + z > x THEN 'Yes'
+           ELSE 'No'
+       END AS triangle
+FROM Triangle;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 613
+--Shortest distance in a line
+
+--appraoch is to use self join
+
+create table cricket_dataset.point(
+  x float64
+);
+
+insert into cricket_dataset.point values(-1),(0),(2);
+
+select * from cricket_dataset.point order by x;
+
+--We can use a self-join to join each point in the table with the larger points, and then calculate the distance between the two points. Finally, we can take the minimum distance.
+
+select min(p2.x-p1.x) as shortest from cricket_dataset.point p1
+join cricket_dataset.point p2
+on p1.x > p2.x
+
+/*
++----------+
+| shortest |
++----------+
+| 1        |
++----------+
+*/
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1445
+--1445 :Apple and Oranges
+
+/*
+find the differenc between apple and oranges sold each day
+*/
+drop table if exists cricket_dataset.sales;
+CREATE TABLE cricket_dataset.sales (
+    sale_date DATE,
+    fruit string,
+    sold_num INT64
+);
+
+INSERT INTO cricket_dataset.sales (sale_date, fruit, sold_num)
+VALUES 
+    ('2020-05-01', 'apples', 10),
+    ('2020-05-01', 'oranges', 8),
+    ('2020-05-02', 'apples', 15),
+    ('2020-05-02', 'oranges', 15),
+    ('2020-05-03', 'apples', 20),
+    ('2020-05-03', 'oranges', 0),
+    ('2020-05-04', 'apples', 15),
+    ('2020-05-04', 'oranges', 16);
+
+--use case when and take diff
+with cte as(
+select sale_date,
+sum(case when fruit='apples' then sold_num else 0 end) as apple_count,
+sum(case when fruit='oranges' then sold_num else 0 end) as orange_count 
+from cricket_dataset.sales
+group by sale_date)
+select sale_date,(apple_count-orange_count) as diff from cte
+
+--use group by and sum
+select sale_date,sum(if(fruit='apples',sold_num,-sold_num)) as diff
+from cricket_dataset.sales
+group by 1
+order by 1;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
