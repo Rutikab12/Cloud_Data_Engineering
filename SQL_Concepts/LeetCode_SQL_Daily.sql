@@ -77,13 +77,6 @@ having count(email)>1
 --------------------------------------------------------------------------------------------------------------------------------------------------
 --LeetCode Problems: 603
 --Consecutive Available Seats (Premium)
-drop table if exists vfscmuat_dh_lake_comms_ie_dev_staging_s.cinema;
-create table vfscmuat_dh_lake_comms_ie_dev_staging_s.cinema(
-  seat_id int64,
-  free int64
-);
-insert into vfscmuat_dh_lake_comms_ie_dev_staging_s.cinema values(1,1),(2,0),(3,1),(4,1),(5,1);
-select * from vfscmuat_dh_lake_comms_ie_dev_staging_s.cinema;
 
 --use lead() and lag() for getting consecutive seats
 select seat_id from(
@@ -188,40 +181,6 @@ select class from courses group by class having count(class)>=5;
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 --LeetCode Problems :597
 --597 : Friend Requests overall acceptance rate
-/*
-| sender_id | send_to_id |request_date|
-|-----------|------------|------------|
-| 1         | 2          | 2016_06-01 |
-| 1         | 3          | 2016_06-01 |
-| 1         | 4          | 2016_06-01 |
-| 2         | 3          | 2016_06-02 |
-| 3         | 4          | 2016-06-09 |
-*/
-
-create table cricket_dataset.friend_request(
-  sender_id int64,
-  send_to_id int64,
-  request_date date
-);
-
-insert into cricket_dataset.friend_request values(1,2,'2016-06-01'),(1,3,'2016-06-01'),(1,4,'2016-06-01'),(2,3,'2016-06-02'),(3,4,'2016-06-09');
-
-create table cricket_dataset.request_accepted(
-  requester_id int64,
-  accepter_id int64,
-  accept_date date
-);
-
-insert into cricket_dataset.request_accepted values(1,2,'2016-06-03'),(1,3,'2016-06-08'),(2,3,'2016-06-08'),(3,4,'2016-06-09'),(3,4,'2016-06-10');
-/*
-| requester_id | accepter_id |accept_date |
-|--------------|-------------|------------|
-| 1            | 2           | 2016_06-03 |
-| 1            | 3           | 2016-06-08 |
-| 2            | 3           | 2016-06-08 |
-| 3            | 4           | 2016-06-09 |
-| 3            | 4           | 2016-06-10 |
-*/
 
 select * from cricket_dataset.request_accepted;
 
@@ -290,23 +249,6 @@ on p1.x > p2.x
 /*
 find the differenc between apple and oranges sold each day
 */
-drop table if exists cricket_dataset.sales;
-CREATE TABLE cricket_dataset.sales (
-    sale_date DATE,
-    fruit string,
-    sold_num INT64
-);
-
-INSERT INTO cricket_dataset.sales (sale_date, fruit, sold_num)
-VALUES 
-    ('2020-05-01', 'apples', 10),
-    ('2020-05-01', 'oranges', 8),
-    ('2020-05-02', 'apples', 15),
-    ('2020-05-02', 'oranges', 15),
-    ('2020-05-03', 'apples', 20),
-    ('2020-05-03', 'oranges', 0),
-    ('2020-05-04', 'apples', 15),
-    ('2020-05-04', 'oranges', 16);
 
 --use case when and take diff
 with cte as(
@@ -323,3 +265,54 @@ from cricket_dataset.sales
 group by 1
 order by 1;
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 619
+--619 : Biggest Single number
+
+--use dupliate logic and takeout max(num)
+select max(num) as num from (select num from mynumbers group by num having count(num)=1) as a;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 620
+--620 :Boring Movies
+
+--use id%2 != 0 as logic for odd numbers
+select id,movie,description,rating from cinema
+where description != 'boring' and id%2<>0
+order by rating desc;
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems :627
+--627 : Swap Salary
+
+--pdate salary set sex= case when sex='f' then 'm' else 'f' end
+UPDATE salary
+SET sex = if(sex = 'm', 'f', 'm')
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems :2084
+--2084 : Drop Type 1 Orders for Customers With Type 0 Orders
+
+--choose min(order_type) and partition it by customer_id and then compare order_type=min_order_type 
+
+with cte as(
+select *,
+min(order_type) over(partition by customer_id order by customer_id) as min_order_type
+from cricket_dataset.orders)
+select order_id,customer_id,order_type from cte where order_type = min_order_type
+order by order_type desc
+
+--or in where condition of cte, we can use order_type+min_order_type<>1
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1393
+--1393 :Capital gain/loss
+
+--with cte and row_number()
+with cte as(
+select *,
+row_number() over(partition by stock_name,operation) as stock_history
+from stocks)
+select stock_name,sum(case when operation='Buy' then -price else price end)as capital_gain_loss from cte
+group by stock_name;
+
+--without cte , using only case when and group by
+select stock_name,sum(case when operation='Buy' then -price else price end)as capital_gain_loss from stocks
+group by stock_name
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
