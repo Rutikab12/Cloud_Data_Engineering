@@ -316,3 +316,72 @@ group by stock_name;
 select stock_name,sum(case when operation='Buy' then -price else price end)as capital_gain_loss from stocks
 group by stock_name
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems :1783
+--1783 : Grand Slam Titles
+
+--Write a solution to report the number of grand slam tournaments won by each player. Do not include the players who did not win any tournament.
+--first do the pivot,ie change championship table (pivot) and perform union all and group by player_id with count
+--then do left join on cte and player table
+
+with cte1 as(
+select year,'Wimbledon' as Championship ,Wimbledon as player_id from cricket_dataset.championships
+union all
+select year,'Fr_open' as Championship ,Fr_open as player_id from cricket_dataset.championships
+union all
+select year,'US_open' as Championship ,US_open as player_id from cricket_dataset.championships
+union all
+select year,'Au_open' as Championship ,Au_open as player_id from cricket_dataset.championships),
+cte2 as(
+  select player_id,count(player_id) as grand_slams_count from cte1 group by player_id
+)
+select c.player_id,p.player_name,c.grand_slams_count from cte2 c
+left join cricket_dataset.players p
+on p.player_id=c.player_id
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1050
+--1050 : Actors and Directors who incorporate more than 3 times
+
+--do group by and take count of timestamp
+select actor_id,director_id from actordirector
+group by actor_id,director_id
+having count(timestamp)>=3;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1113
+--1113 : Reported Posts
+
+--use date,action and extra is not null in where condition and take count of disticnt post_id
+
+select extra as reason_for,count(distinct post_id) as no_of_posts from cricket_dataset.actions
+where action='report' and action_date = '2019-07-04' and extra is not null
+group by 1
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems : 1211
+--1211 - Queries Quality and Percentage
+
+--use sum() and avg()
+SELECT
+    query_name,
+    ROUND(AVG(rating / position), 2) AS quality,
+    ROUND(AVG(rating < 3) * 100, 2) AS poor_query_percentage
+FROM Queries
+where query_name is not null
+GROUP BY 1;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems : 1241
+--1241 - Number of Comments per Post
+
+--do self join and then take count of sub_id, group by and order by post_id
+
+WITH t AS (
+    SELECT DISTINCT s1.sub_id AS post_id, s2.sub_id AS sub_id
+    FROM cricket_dataset.submissions AS s1
+    LEFT JOIN cricket_dataset.submissions AS s2 ON s1.sub_id = s2.parent_id
+    WHERE s1.parent_id IS NULL
+)
+SELECT post_id, COUNT(sub_id) AS number_of_comments
+FROM t
+GROUP BY post_id
+ORDER BY post_id;
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
