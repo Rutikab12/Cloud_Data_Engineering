@@ -385,3 +385,34 @@ FROM t
 GROUP BY post_id
 ORDER BY post_id;
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems : 1241
+--1251 - Average Selling price
+
+--use group by and COALESCE
+select p.product_id,COALESCE(round(sum(p.price*u.units)/sum(u.units),2),0) as average_price from prices p
+left join unitssold u
+on p.product_id=u.product_id and purchase_date between start_date and end_date
+group by product_id
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems : 1241
+--1294 - Weather Type in Each Country
+
+--use case when and join country_id and extract month , group by country_name
+select c.country_name,
+case when avg(w.weather_state)<=15 then 'Cold'
+when avg(w.weather_state)>=25 then 'Hot' else
+'Warm' end as weather_type
+from `cricket_dataset.countries` c
+join `cricket_dataset.weather` w
+on c.country_id=w.country_id
+WHERE EXTRACT(MONTH from day) = 11
+GROUP BY c.country_name ;
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems : 1303
+-- 1303. Find the Team Size
+
+--use window function and do partitions based on team_id
+select employee_id,
+count(employee_id) over(partition by team_id order by team_id) as team_size
+from cricket_dataset.employee
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
