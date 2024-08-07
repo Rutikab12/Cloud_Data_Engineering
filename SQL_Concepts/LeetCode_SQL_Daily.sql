@@ -416,3 +416,73 @@ select employee_id,
 count(employee_id) over(partition by team_id order by team_id) as team_size
 from cricket_dataset.employee
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems : 1280
+-- 1280 : Students and examinations
+
+--use left join
+select s.student_id,s.student_name,sn.subject_name,count(e.subject_name) as attended_Exams from students s
+join subjects sn left join examinations e
+on s.student_id=e.student_id and e.subject_name=sn.subject_name
+group by s.student_id,sn.subject_name,s.student_name
+order by s.student_id,sn.subject_name
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1285
+-- 1285 : Find the Start and End Number of Continuous Ranges
+
+--count the diffeernce by giving row_number, if 0 range present else not
+--then find min mand max of number from cte
+with cte as(
+select log_id,log_id-row_number() over(order by log_id) as diff
+from cricket_dataset.logs)
+select min(log_id) as start_id , max(log_id) as end_id
+from cte
+group by diff
+order by start_id
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1699
+-- 1699 : Number of Calls Between Two Persons
+
+--use case when to get person_1 and 2
+--then wrap it up in cte and do groupby 1,2 and sum(duration) and count()all
+with cte as(
+select *, case when from_id<to_id then from_id else to_id end as person_1,
+case when from_id<to_id then to_id else from_id end as person_2
+from cricket_dataset.calls)
+select person_1,person_2,sum(duration) as duration,count(*) as call_counts,
+from cte
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 2066
+-- 2066 : Account Balance
+
+--use normal case when and sum and then partition it by ccount_id
+select account_id,day,
+sum(case when type='Deposit' then amount else -amount end) over(partition by account_id order by account_id,day) as balance
+from cricket_dataset.transactions
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1378
+-- 1378 : Replace employee_id with unique identifier
+
+select a.unique_id,b.name from employeeUNI a
+right join employees b
+on a.id=b.id
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1350
+-- 1350 - Students With Invalid Departments
+
+--use not in operator
+select s.id,s.name from cricket_dataset.students s
+where department_id not in (select id from cricket_dataset.departments);
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----LeetCode Problems: 1407
+--1407 : Top Traveller
+
+--use left join and COALESCE with sum(distance)
+select u.name,coalesce(sum(r.distance),0) as travelled_distance
+from users u
+left join rides r
+on u.id=r.user_id
+group by u.id,u.name
+order by travelled_distance desc,name asc
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
