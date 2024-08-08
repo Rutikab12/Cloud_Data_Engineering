@@ -486,3 +486,58 @@ group by u.id,u.name
 order by travelled_distance desc,name asc
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1421
+--1421 :NPV Queries
+
+--do left join on queries
+select q.id,q.year,coalesce(n.npv,0) as npv from cricket_dataset.queries q
+left join cricket_dataset.npv n
+on n.id=q.id and n.year=q.year
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem: 1435
+--1435 : Create a Session Bar Chart
+
+--we can use between instead greater or equal operator
+SELECT '[0-5>' AS bin, COUNT(1) AS total FROM cricket_dataset.sessions WHERE duration < 300
+UNION ALL
+SELECT '[5-10>' AS bin, COUNT(1) AS total FROM cricket_dataset.sessions WHERE 300 <= duration AND duration < 600
+UNION ALL
+SELECT '[10-15>' AS bin, COUNT(1) AS total FROM cricket_dataset.sessions WHERE 600 <= duration AND duration < 900
+UNION ALL
+SELECT '15 or more' AS bin, COUNT(1) AS total FROM cricket_dataset.sessions WHERE 900 <= duration;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem: 1484
+--1484 - Group Sold Products By The Date
+
+--use group concat and count distinct product
+SELECT sell_date,COUNT(DISTINCT product) AS num_sold,
+GROUP_CONCAT(distinct product order by product) AS products
+FROM Activities GROUP BY sell_date
+ORDER BY sell_date;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem: 1465
+--1465 :Unique Orders and Customers Per Month
+
+--use substring and count distinct customers and order_id
+select substring(cast(order_date as string),0,7) as month,count(distinct customer_id) as customer_count,count(order_id) as order_count from cricket_dataset.orders
+where invoice>20
+group by substring(cast(order_date as string),0,7)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem: 1596
+--1596 :The Most Frequently Ordered Products for Each Customer
+
+--first take count of customer_id;s and rank them
+--then select only those whose rk=1
+--and join cte with product_table
+with cte1 as(
+select customer_id,product_id ,rank() over(partition by customer_id order by count(*) desc) as rk
+from cricket_dataset.orders
+group by customer_id,product_id),
+cte2 as(
+select * from cte1 where rk=1)
+select c.customer_id,p.product_id,p.product_name from cte2 c
+join `cricket_dataset.products` p
+on c.product_id=p.product_id
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
