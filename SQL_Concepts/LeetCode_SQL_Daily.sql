@@ -541,3 +541,76 @@ join `cricket_dataset.products` p
 on c.product_id=p.product_id
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem: 1204
+--1204 :Last Person to fit in bus
+
+--use cte with sum for running sum
+with cte as(
+select *,sum(weight) over(order by turn) as Total_Weight
+from queue)
+select person_name from cte where Total_weight <=1000
+order by turn desc limit 1;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem: 1907
+--1907 :Count Salary Categories
+
+--use union all and sum aggregate function
+select "Low Salary" as Category,sum(case when income<20000 then 1 else 0 end) as accounts_count
+from accounts
+union
+select "Average Salary" as Category,sum(case when income between 20000 and 50000 then 1 else 0 end) as accounts_count
+from accounts
+union
+select "High Salary" as Category,sum(case when income>50000 then 1 else 0 end) as accounts_count
+from accounts
+
+--2nd solution,using cte and then union all
+with cte as (
+    SELECT 
+    SUM(income < 20000) as `Low`,
+    SUM(20000 <= income && income <= 50000) as `Avg`,
+    SUM(50000 < income) as `High`
+    FROM Accounts
+)
+SELECT 'Low Salary' AS category, `Low` AS accounts_count FROM cte
+UNION ALL
+SELECT 'Average Salary' AS category, `Avg` AS accounts_count FROM cte
+UNION ALL
+SELECT 'High Salary' AS category, `High` AS accounts_count FROM cte
+ORDER BY accounts_count;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem: 602
+--602 :Friend Request II - Who has most friends
+
+--use subquery as with cte it is not accepting solution
+SELECT id, COUNT(*) AS num 
+FROM (SELECT requester_id AS id FROM RequestAccepted
+UNION ALL
+SELECT accepter_id FROM RequestAccepted
+) AS friends_count
+GROUP BY id
+ORDER BY num DESC 
+LIMIT 1;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1978
+--1978 :Employee who manager left the company
+
+--using subquery and left join
+select employee_id from(
+ select e1.* from employees e1
+ left join employees e2
+ on e1.manager_id=e2.employee_id
+ where e1.manager_id is not null and e2.employee_id is null
+) as em
+where salary<30000
+order by employee_id
+
+--2nd solution using not in clause
+select employee_id
+from employees
+where salary < 30000 and 
+manager_id not in (
+        select employee_id from employees
+    )
+order by employee_id
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
