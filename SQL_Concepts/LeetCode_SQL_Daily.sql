@@ -516,8 +516,8 @@ FROM Activities GROUP BY sell_date
 ORDER BY sell_date;
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---LeetCode Problem: 1465
---1465 :Unique Orders and Customers Per Month
+--LeetCode Problem: 1565
+--1565 :Unique Orders and Customers Per Month
 
 --use substring and count distinct customers and order_id
 select substring(cast(order_date as string),0,7) as month,count(distinct customer_id) as customer_count,count(order_id) as order_count from cricket_dataset.orders
@@ -614,5 +614,61 @@ manager_id not in (
     )
 order by employee_id
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---no practice today on 10aug
---no practice today on 11 Aug
+--LeetCode Problems: 1571 
+--1571 : Warehouse Manager
+
+--use inner join and then sum it up as volume and group by warehouse name
+select w.name as warehouse_name,sum(w.units*(p.Length*p.Height*p.Width)) as volumne
+ from cricket_dataset.products p
+join cricket_dataset.warehouse w
+on p.product_id=w.product_id
+group by w.name
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1581
+--1581. Customer Who Visited but Did Not Make Any Transactions
+
+# Write your MySQL query statement below
+select a.customer_id,count(a.visit_id) as count_no_trans from visits a
+left join transactions b
+on a.visit_id=b.visit_id
+where b.transaction_id is null
+group by a.customer_id
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1587
+--1587 : Bank Account Summary II
+
+--use group by account and having amount>10000
+select u.name,sum(t.amount) as balance from Users u
+join Transactions t
+on u.account=t.account
+GROUP BY t.account
+HAVING balance > 10000;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1683
+--1683 : Invalid Tweets
+
+select tweet_id from tweets where length(content) > 15;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1693
+--1693. Daily Leads and Partners
+
+--use count distincts
+select date_id,make_name,count(distinct lead_id) as unique_leads,count(distinct partner_id) as unique_partners 
+from dailysales
+group by date_id,make_name;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1581
+--1581. Maximum transactions each day
+
+--use window functions and rank it
+with cte as(
+select transaction_id,rank() over(partition by cast (day as date) ORDER BY amount DESC) AS rk
+from cricket_dataset.transactions)
+select transaction_id from cte
+where rk=1
+order by 1;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+>>>>>>> Stashed changes
