@@ -671,3 +671,52 @@ select transaction_id from cte
 where rk=1
 order by 1;
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1741
+--1741. Total Time Spend by Each employee
+
+--use group by and sum of in_time and out_time
+select event_day as day,emp_id,sum(out_time-in_time) as total_time
+from employees
+group by event_day,emp_id;
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1757
+--1757. Recyclable and Low Fat Products
+
+--
+select product_id from products where low_fats='Y' and recyclable='Y';
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1821
+--1821. Find Customers with Positive revenue this year
+
+select * from cricket_dataset.customers
+where year=2021 and revenue>0
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1873
+--1873. Calculate Special bonus
+
+-- use even odd logic and not like operator
+with cte as(
+select *, case when employee_id%2!=0 and name not like 'M%' then salary else 0 end as bonus
+from employees)
+select employee_id,bonus from cte order by employee_id;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1468
+--1468. Calculate Salaries
+
+--use max and patition by company_id
+--then use case when as per conditions given
+with cte as(
+select *,max(salary) over(partition by company_id) as max_salary from `cricket_dataset.salaries`
+)
+select company_id,employee_id,employee_name,
+ROUND(CASE WHEN max_salary < 1000 THEN salary
+WHEN max_salary >= 1000 AND max_salary <= 10000 THEN salary * 0.76
+ELSE salary * 0.51
+END
+) AS salary
+from cte
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
