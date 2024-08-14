@@ -717,6 +717,80 @@ END
 ) AS salary
 from cte
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1965
+--1965. Employees with Missing Information
 
+--use union all and order by employee_id asc
+select employee_id from employees where employee_id not in (select employee_id from salaries)
+union
+select employee_id from salaries where employee_id not in (select employee_id from employees)
+order by 1
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1890
+--1890. Latest Login in 2020
 
+--use max + group by functino
+select user_id,max(time_stamp) as last_stamp from logins
+where Year(time_stamp)=2020
+group by user_id;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 2026
+--2026. Low-Quality Problems
+
+--use with clause and normal round function to calculate Percentage
+with cte as(
+select problem_id,round(likes/(likes+dislikes)*100,2) as like_per from `cricket_dataset.problems`)
+select problem_id from cte where like_per < 60.00
+order by 1
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 2082
+--2082. Number of Rich customers
+
+--use distinct count
+select count(distinct customer_id) as rich_count
+from store
+where amount > 500;
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1795
+--1795 : Rearrange PRoducts table
+
+--use union to create rows to column (pivot)
+select product_id,'store1' as store, store1 as price from products where store1 is not null
+union
+select product_id,'store2' as store, store2 as price from products where store2 is not null
+union
+select product_id,'store3' as store, store3 as price from products where store3 is not null
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 534
+--534 - Game Play Analysis III
+
+--window function using sum() over() and sorting by event_Date and then calculate running sum
+select player_id,event_date,
+sum(games_played rows between unbounded preceeding and current row) over(partition by player_id order by event_date) as total_games 
+from cricket_dataset.activity
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1398
+--1398 - Customers Who Bought Products A and B but Not C
+
+--use sum(product_name='A')>0 in having as customers who bought product A,B,C , enclosed it within cte and then use IN operator
+with cte as(
+select customer_id
+from cricket_dataset.orders
+group by customer_id
+having sum(product_name='A')>0 and sum(product_name='B')>0  and sum(product_name='C')=0
+)
+select * from cricket_dataset.customers
+where customer_id in (select customer_id from cte)
+order by 1
+
+--another solution using left join+group by+having
+SELECT customer_id, customer_name
+FROM
+    Customers
+    LEFT JOIN Orders USING (customer_id)
+GROUP BY 1
+HAVING SUM(product_name = 'A') > 0 AND SUM(product_name = 'B') > 0 AND SUM(product_name = 'C') = 0
+ORDER BY 1;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
