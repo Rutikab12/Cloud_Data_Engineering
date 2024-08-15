@@ -794,3 +794,67 @@ GROUP BY 1
 HAVING SUM(product_name = 'A') > 0 AND SUM(product_name = 'B') > 0 AND SUM(product_name = 'C') = 0
 ORDER BY 1;
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----LeetCode Problems: 1853
+--1853 : Convert Date Format
+
+--use mysql date time functions
+SELECT DATE_FORMAT(day, '%W, %M %e, %Y') AS day FROM Days;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----LeetCode Problems: 1173
+--1173 - Immediate Food Delivery I
+
+--use with clause and take distinct attributes and then use round(sum()/count()) for Percentage
+with cte as(
+select distinct customer_id,order_date,customer_pref_delivery_date as ccpd
+from cricket_dataset.delivery
+order by customer_id,order_date)
+select round(sum(case when order_date=cte.ccpd then 1 else 0 end)/count(*)*100,2) as immediate_percentage
+from cte;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1069
+-- 1069 : Product Sales Analysis II
+
+--two solutions one using window functions and other by using just group by and sum()
+select distinct product_id,sum(quantity) over(partition by product_id) as total_quantity from cricket_dataset.sales
+
+select product_id,sum(quantity) as total_quantity from cricket_dataset.sales
+group by product_id
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1068
+-- 1068 : Product Sales Analysis I
+
+--use inner join or only where condition where it treats that condition as join
+
+select b.product_name,a.year,a.price from sales a
+inner join product b
+on a.product_id=b.product_id;
+
+select Product.product_name , Sales.year, Sales.price from Product , Sales
+where Product.product_id=Sales.product_id ;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 511
+-- 511 : Game Play Analysis I
+
+--use group by and min(date)
+select a1.player_id,min(a1.event_date) as first_login from activity a1
+group by 1;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1715
+-- 1715 : Count Apple and oranges
+
+--use case when for chest_id is null and take sum of it.
+select sum(case when b.chest_id is null then b.apple_count else (b.apple_count+c.apple_count) end) as apple_count,
+sum(case when b.chest_id is null then b.orange_count else (b.orange_count+c.orange_count) end) as orange_count
+from cricket_dataset.boxes b
+left join cricket_dataset.chests c
+on b.chest_id=c.chest_id
+
+--using if null or coalesce
+select
+sum(ifnull(b.apple_count, 0) + ifnull(c.apple_count, 0)) as apple_count,
+sum(ifnull(b.orange_count, 0) + ifnull(c.orange_count, 0)) as orange_count
+from cricket_dataset.boxes as b
+left join cricket_dataset.chests as c 
+on b.chest_id = c.chest_id;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
