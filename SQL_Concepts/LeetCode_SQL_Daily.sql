@@ -858,3 +858,84 @@ from cricket_dataset.boxes as b
 left join cricket_dataset.chests as c 
 on b.chest_id = c.chest_id;
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1789
+-- 1789 : Primary Department for each employee
+
+--first using union 
+SELECT employee_id, department_id
+FROM Employee
+WHERE primary_flag = 'Y'
+UNION
+SELECT employee_id, department_id
+FROM Employee
+GROUP BY employee_id
+    HAVING COUNT(*) = 1;
+	
+--using IN operator
+select e.employee_id,e.department_id from employee e
+where e.primary_flag='Y' OR e.employee_id in (
+    select employee_id from employee group by employee_id having count(employee_id)=1
+)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1789
+-- 1789 : Primary Department for each employee
+
+--using left join+ group by +having
+select p.product_name,sum(o.unit) as unit from products p
+left join orders o
+on p.product_id=o.product_id
+and o.order_date between '2020-02-01' and '2020-02-29'
+group by o.product_id
+having unit>=100
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1148
+-- 1148 : Article Views I
+
+--use distinct,IN operator and order by id
+select distinct author_id as id from views
+where author_id in (select author_id from views where viewer_id=author_id) 
+order by id asc
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1082
+--1082 - Sales Analysis I
+
+--use group by + having (subquery)
+select s.seller_id from cricket_dataset.sales s
+group by s.seller_id
+having sum(price) = (select sum(price) as price from cricket_dataset.sales
+                      group by seller_id 
+                      order by price desc limit 1)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 2041
+--2041 - Accepted Candidates From the Interviews
+
+--use left join+ where + group by + having clause
+select c.candidate_id from cricket_dataset.candidates c
+left join cricket_dataset.rounds r
+on c.interview_id=r.interview_id
+where c.years_of_exp>=2
+group by c.candidate_id  --we can use interview_id also id didn't workout in BQ hence I used candidate_id
+having sum(r.score)>=15
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1934
+--1934 - Confirmation Rate
+
+--use round(avg(case when 1 else 0)) + left join+ group by
+select s.user_id,
+round(avg(case when c.action='confirmed' then 1 else 0 end),2) as confirmation_rate
+from signups s
+left join confirmations c
+on s.user_id=c.user_id
+group by s.user_id
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1867
+--1867 - Orders With Maximum Quantity Above Average
+
+--use max + avg + group by in cte and then query and compare
+with cte as(
+select order_id,max(quantity) as max_quantity,round(avg(quantity),2) as avg_quantity from cricket_dataset.orders_details
+group by order_id)
+select order_id from cte
+where cte.max_quantity > (select max(cte.avg_quantity) from cte)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
