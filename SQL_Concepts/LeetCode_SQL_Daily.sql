@@ -939,3 +939,78 @@ group by order_id)
 select order_id from cte
 where cte.max_quantity > (select max(cte.avg_quantity) from cte)
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1729
+--1729 : Find Followers Count
+
+--use group by
+select user_id, count(follower_id) as followers_count 
+from followers 
+group by user_id 
+order by user_id asc;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1511
+--1511 : Customer Order Frequency
+
+--use join + group by +having sum()
+--we can use using also --using(customer_id) and using(product_id)
+select c.customer_id,c.name from cricket_dataset.customers c
+join cricket_dataset.orders o on c.customer_id = o.customer_id
+join cricket_dataset.product p on p.product_id = o.product_id
+where extract(Year from order_date)=2020
+group by 1
+having sum(if(MONTH(order_date) = 6, quantity * price, 0)) >= 100
+and sum(if(MONTH(order_date) = 7, quantity * price, 0)) >= 100;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1633
+--1633 - Percentage of Users Attended a Contest
+
+--use group by and subquery
+SELECT contest_id,ROUND(COUNT(1) * 100 / (SELECT COUNT(1) FROM Users), 2) AS percentage
+FROM Register
+GROUP BY contest_id
+ORDER BY percentage DESC, contest_id;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 607
+--607 - Sales Person
+
+--first solution using left join+ group by +having
+SELECT s.name
+FROM
+    SalesPerson AS s
+    LEFT JOIN Orders USING (sales_id)
+    LEFT JOIN Company AS c USING (com_id)
+GROUP BY sales_id
+HAVING IFNULL(SUM(c.name = 'RED'), 0) = 0;
+
+--second solution using IN+subquery
+select name from salesperson 
+where sales_id not in (
+select distinct sales_id from orders
+where com_id = (select com_id from company where name = "RED")
+)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1077
+--1077 - Project Employees III
+
+--use left join + window function and cte
+with cte as(
+select p.project_id,e.employee_id,e.experience_years, rank() over(partition by project_id order by e.experience_years desc) as rk from cricket_dataset.project p
+left join cricket_dataset.employee e
+on p.employee_id=e.employee_id)
+select project_id,employee_id from cte
+where rk=1
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 2238
+--2238 - Number of Times a Driver Was a Passenger
+
+--use cte and count(distinct()) subquery
+with cte as (
+select distinct driver_id from cricket_dataset.rides)
+select t.driver_id, count(passenger_id) as cnt
+from cte as t
+left join cricket_dataset.rides as r on t.driver_id = r.passenger_id
+group by 1;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
