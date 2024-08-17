@@ -1,0 +1,420 @@
+#What is Data Warehouse:
+
+A Data Warehouse (DW) is a relational database that is designed for query and analysis rather than transaction processing.
+
+It is a database, which is different from organisation's operational database where frequent changes do not happens.
+
+It occupies consolidated historical data,which helps the organisation to analyze its business performance, take decisions based on analysis.
+
+Although the discussion above has focused on the term "data warehouse", there are two other important terms that need to be mentioned. These are the data mart and the operation data store (ODS).
+
+A data mart serves the same role as a data warehouse, but it is intentionally limited in scope. It may serve one particular department or line of business. The advantage of a data mart versus a data warehouse is that it can be created much faster due to its limited coverage. However, data marts also create problems with inconsistency. It takes tight discipline to keep data and calculation definitions consistent across data marts. This problem has been widely recognized, so data marts exist in two styles. Independent data marts are those which are fed directly from source data. They can turn into islands of inconsistent information. Dependent data marts are fed from an existing data warehouse. Dependent data marts can avoid the problems of inconsistency, but they require that an enterprise-level data warehouse already exist.
+
+Operational data stores exist to support daily operations. The ODS data is cleaned and validated, but it is not historically deep: it may be just the data for the current day. Rather than support the historically rich queries that a data warehouse can handle, the ODS gives data warehouses a place to get access to the most current data, which has not yet been loaded into the data warehouse. The ODS may also be used as a source to load the data warehouse. As data warehousing loading techniques have become more advanced, data warehouses may have less need for ODS as a source for loading data. Instead, constant trickle-feed systems can load the data warehouse in near real time.
+
+Contrasting OLTP and Data Warehousing Environments
+There are important differences between an OLTP system and a data warehouse. One major difference between the types of system is that data warehouses are not exclusively in third normal form (3NF), a type of data normalization common in OLTP environments.
+
+Data warehouses and OLTP systems have very different requirements. Here are some examples of differences between typical data warehouses and OLTP systems:
+1. workload : built to support ad-hoc queries and scale as per query load and requirements, while OLTP has predefined operations.
+2. Data Modifications :end users cannot directly modify DW data, whereas OLTP issues routinely modification statements and keep data uptodate.
+3. Schema Design : partially normalized, OLTP is fully in 3NF and can gurantee data consistency
+4. Typical operations :scans thousand or millions of data , in OLTP volumne is much lesser.
+
+DW Architectures:
+
+1. Without statging Area
+
+source --> data warehouse --> end users
+
+the metadata and raw data of a traditional OLTP system is present, as is an additional type of data, summary data. Summaries are a mechanism to pre-compute common expensive, long-running operations for sub-second data retrieval. For example, a typical data warehouse query is to retrieve something such as August sales. A summary in an Oracle database is called a materialized view.
+
+The consolidated storage of the raw data as the center of your data warehousing architecture is often referred to as an Enterprise Data Warehouse (EDW). An EDW provides a 360-degree view into the business of an organization by holding all relevant business information in the most detailed format.
+
+2. With staging area
+
+source --> staging area (for ETL ,etc) --> data warehouse --> end users
+
+You must clean and process your operational data before putting it into the warehouse, as shown in Figure 1-2. You can do this programmatically, although most data warehouses use a staging area instead. A staging area simplifies data cleansing and consolidation for operational data coming from multiple source systems, especially for enterprise data warehouses where all relevant information of an enterprise is consolidated. Figure 1-2 illustrates this typical architecture.
+
+3. With staging area and Data Marts
+
+source --> staging area --> data warehouse --> data mart --> end users
+
+Although the architecture in Figure 1-2 is quite common, you may want to customize your warehouse's architecture for different groups within your organization. You can do this by adding data marts, which are systems designed for a particular line of business. Figure 1-3 illustrates an example where purchasing, sales, and inventories are separated. In this example, a financial analyst might want to analyze historical data for purchases and sales or mine historical data to make predictions about customer behavior.
+
+Logical Versus Physical Design in Data Warehouses
+
+The logical design is more conceptual and abstract than the physical design. In the logical design, you look at the logical relationships among the objects. In the physical design, you look at the most effective way of storing and retrieving the objects as well as handling them from a transportation and backup/recovery perspective.
+
+Orient your design toward the needs of the end users. End users typically want to perform analysis and look at aggregated data, rather than at individual transactions. However, end users might not know what they need until they see it. In addition, a well-planned design allows for growth and changes as the needs of users change and evolve.
+
+By beginning with the logical design, you focus on the information requirements and save the implementation details for later.
+
+Creating a Logical Design
+A logical design is conceptual and abstract. You do not deal with the physical implementation details yet. You deal only with defining the types of information that you need.
+
+One technique you can use to model your organization's logical information requirements is entity-relationship modeling. Entity-relationship modeling involves identifying the things of importance (entities), the properties of these things (attributes), and how they are related to one another (relationships).
+
+The process of logical design involves arranging data into a series of logical relationships called entities and attributes. An entity represents a chunk of information. In relational databases, an entity often maps to a table. An attribute is a component of an entity that helps define the uniqueness of the entity. In relational databases, an attribute maps to a column.
+
+To ensure that your data is consistent, you must use unique identifiers. A unique identifier is something you add to tables so that you can differentiate between the same item when it appears in different places. In a physical design, this is usually a primary key.
+
+Entity-relationship modeling is purely logical and applies to both OLTP and data warehousing systems. It is also applicable to the various common physical schema modeling techniques found in data warehousing environments, namely normalized (3NF) schemas in Enterprise Data Warehousing environments, star or snowflake schemas in data marts, or hybrid schemas with components of both of these classical modeling techniques.
+
+About 3NF Schemas:
+
+Third Normal Form design seeks to minimize data redundancy and avoid anomalies in data insertion, updates and deletion. 3NF design has a long heritage in online transaction processing (OLTP) systems
+
+3NF designs have great flexibility, but it comes at a cost. 3NF databases use very many tables and this requires complex queries with many joins. For full scale enterprise models built in 3NF form, over one thousand tables are commonly encountered in the schema. With the kinds of queries involved in data warehousing, which will often need access to many rows from many tables, this design imposes understanding and performance penalties.
+
+About Normalization
+Normalization is a data design process that has a high level goal of keeping each fact in just one place to avoid data redundancy and insert, update, and delete anomalies.
+
+In first normal form (1NF), there are no repeating groups of data and no duplicate rows. Every intersection of a row and column (a field) contains just one value, and there are no groups of columns that contain the same facts. To avoid duplicate rows, there is a primary key. 
+
+Then comes second normal form (2NF), where the design is in first normal form and every non-key column is dependent on the complete primary key. Thus, the line items are broken out into a table of sales order line items where each row represents one line item of one order. You can look at the line item table and see that the names of the items sold are not dependent on the primary key of the line items table: the sales item is its own entity. Therefore, you move the sales item to its own table showing the item name.
+
+Next is third normal form, where the goal is to ensure that there are no dependencies on non-key attributes. So the goal is to take columns that do not directly relate to the subject of the row (the primary key), and put them in their own table. 
+
+Another example of how a 2NF table differs from a 3NF table would be a table of the winners of tennis tournaments that contained columns of tournament, year, winner, and winner's date of birth. In this case, the winner's date of birth is vulnerable to inconsistencies, as the same person could be shown with different dates of birth in different records. The way to avoid this potential problem is to break the table into one for tournament winners, and another for the player dates of birth.
+
+About Star Schema
+
+Star schemas are often found in data warehousing systems with embedded logical or physical data marts. The term star schema is another way of referring to a "dimensional modeling" approach to defining your data model. 
+
+Dimensional modeling creates multiple star schemas, each based on a business process such as sales tracking or shipments. Each star schema can be considered a data mart, and perhaps as few as 20 data marts can cover the business intelligence needs of an enterprise, compare to amount of table we need in 3NF.
+The star schemas are knit together through conformed dimensions and conformed facts. Thus, users are able to get data from multiple star schemas with minimal effort.
+
+Dimensional modeling is a data modeling technique used in data warehousing that allows businesses to structure data to optimize analysis and reporting. This method involves organizing data into dimensions and facts, where dimensions are used to describe the data, and facts are used to quantify the data.
+
+The goal for star schemas is structural simplicity and high performance data retrieval. Because most queries in the modern era are generated by reporting tools and applications, it's vital to make the query generation convenient and reliable for the tools and application. In fact, many business intelligence tools and applications are designed with the expectation that a star schema representation will be available to them.
+
+Note how different the dimensional modeling style is from the 3NF approach that minimizes data redundancy and the risks of update/inset/delete anomalies. The star schema accepts data redundancy (denormalization) in its dimension tables for the sake of easy user understanding and better data retrieval performance. A common criticism of star schemas is that they limit analysis flexibility compared to 3NF designs. However, a well designed dimensional model can be extended to enable new types of analysis, and star schemas have been successful for many years at the largest enterprises.
+
+As noted earlier, the modern approach to data warehousing does not pit star schemas and 3NF against each other. Rather, both techniques are used, with a foundation layer of 3NF - the Enterprise Data Warehouse of 3NF, acting as the bedrock data, and star schemas as a central part of an access and performance optimization layer.
+
+About Facts and Dimensions in Star Schemas
+
+Star schemas divide data into facts and dimensions. Facts are the measurements of some event such as a sale and are typically numbers. Dimensions are the categories you use to identify facts, such as date, location, and product.
+
+The name "star schema" comes from the fact that the diagrams of the schemas typically show a central fact table with lines joining it to the dimension tables, so the graphic impression is similar to a star. Figure 2-2 is a simple example with sales as the fact table and products, times, customers, and channels as the dimension table.
+
+About Fact Tables in Data Warehouses
+
+Fact tables have measurement data. They have many rows but typically not many columns. Fact tables for a large enterprise can easily hold billions of rows. For many star schemas, the fact table will represent well over 90 percent of the total storage space. A fact table has a composite key made up of the primary keys of the dimension tables of the schema.
+
+A fact table contains either detail-level facts or facts that have been aggregated. Fact tables that contain aggregated facts are often called summary tables. A fact table usually contains facts with the same level of aggregation. Though most facts are additive, they can also be semi-additive or non-additive. Additive facts can be aggregated by simple arithmetical addition. A common example of this is sales. Non-additive facts cannot be added at all. An example of this is averages. Semi-additive facts can be aggregated along some of the dimensions and not along others. An example of this is inventory levels stored in physical warehouses, where you may be able to add across a dimension of warehouse sites, but you cannot aggregate across time.
+
+In terms of adding rows to data in a fact table, there are three main approaches:
+
+Transaction-based
+
+Shows a row for the finest level detail in a transaction. A row is entered only if a transaction has occurred for a given combination of dimension values. This is the most common type of fact table.
+
+Periodic Snapshot
+
+Shows data as of the end of a regular time interval, such as daily or weekly. If a row for the snapshot exists in a prior period, a row is entered for it in the new period even if no activity related to it has occurred in the latest interval. This type of fact table is useful in complex business processes where it is difficult to compute snapshot values from individual transaction rows.
+
+Accumulating Snapshot
+
+Shows one row for each occurrence of a short-lived process. The rows contain multiple dates tracking major milestones of a short-lived process. Unlike the other two types of fact tables, rows in an accumulating snapshot are updated multiple times as the tracked process moves forward.
+
+About Snowflake Schemas
+
+The snowflake schema is a more complex data warehouse model than a star schema, and is a type of star schema. It is called a snowflake schema because the diagram of the schema resembles a snowflake.
+
+Snowflake schemas normalize dimensions to eliminate redundancy. That is, the dimension data has been grouped into multiple tables instead of one large table. For example, a product dimension table in a star schema might be normalized into a products table, a product_category table, and a product_manufacturer table in a snowflake schema. While this saves space, it increases the number of dimension tables and requires more foreign key joins. The result is more complex queries and reduced query performance. Figure 2-3 presents a graphical representation of a snowflake schema.
+
+give me create and insert statment for below table in bigquery, where dataset name is cricket_dataset
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Data Warehouse Modelling - Manish Kumar
+
+Lecture -1:
+
+What is Data Warehouse?
+How it is different from databases?
+How Does it look like?
+
+How is it different from spark?
+Sparks stores semi and unstructured data, run on commodity servers (cheaper than DW), provides api's for AI/ML and hence sometimes preferred over DW.
+While DW mostly stores structured data and do not provide service for streaming processes like spark.
+
+Rules of Data Warehouse?
+Integrated--combines different sources
+Subject Oriented--designed for specific purpose
+Time_Variant --stores hsitorical aspects
+Non-Volatile--cannot be changed easily
+
+DW 				Vs 					DB
+
+Stores Large volume of data			Store small volumme of data
+Desgined for read heavy operations	Designed for write heavy operations
+High Latency						Low Latency
+Denormalized						Normalized
+Columnar storage					Row Storage
+Parallel processing of requests		Not optimized for parallel processing
+
+
+Why do we need DW?
+
+Business UseCase:
+Reliance Mart
+We have 1000 stores across 20 states
+Every store have 1000 individual products
+
+Moto:
+We want to maximize the profit.
+So we will keep cost ans inventory optimized
+try to keep vendor cost as less as possible
+sales as much as you can
+
+So we decided to run a promotinal activity to increase sales
+As a business user I want to analyze which products are sold at which store
+under what promotional activity?
+
+Problem without DW:
+
+--users have to hit query directly to DB , which is not feasible and good practice for analytical processing
+--will not have historical aspects of data
+--eventually impact overall performance of business
+
+Advantage of DW:
+
+--Data Driven Decision
+--One stop shopping
+--Making strategic Decision using query and analyzing customer behavior
+--eg: no of products sold, top 10 products, etc
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Lecture - II: Data warehouse Vs Data Lake
+
+What is architecture of DL?
+
+Source --> Data Lake (Storage, duming yard for whole data) --> Data Warehouse --> Business Users
+
+Shortcomings of DW?
+-3V's , volumne,variaty,velocity as data generates at very fast pace and hence can't cope up. as follows ETL process.
+-only supports structured data
+-cost increases as the storage increases
+-vertical scaling that is you can't go beyond specific storage limit
+
+Why do we need DL?
+DL follows ELT process, it first takes data and dumps it in storage layers like HDFS,S3,GCS,etc and then allows transformation to load into DW.
+This helps in horizontal scaling as mulitle machines of same storage can add up.
+
+Modern Day Architectures of DL:
+
+Source --> layers(Ingestion-Processing-Processed-Consumption) --> DW (optional due to consumption layer) --> End user
+Ingestion -- Raw Data
+Processing -- process that raw data and written to next level and access is prohibited to limited users like DE.
+
+diff between DW and DL?
+
+DL 														DW
+can store infinitely large amount of data				can stored limited data due to storage capacity
+don't required pre-defined schema						Required Pre-defined schema
+stores all types of data structured,semi,unstructured	Stores mostly structured and semi data
+ELT														ETL
+Schema on read											Schema on write
+Cost is cheaper											Cost is higher
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Lecture - III : Data Mart
+
+What is data mart?
+Why do we need data mart?
+Types of Data mart?
+When do we need DM and when DW?
+
+Data mart is a subset of DW which is subject-oriented.
+
+Characteristic of Data Mart:
+-Highly subject specific area
+-subset of large DW with specific business subject and specific dates
+-often involves summarize data from DW
+-more control to business
+-fast query performance
+-protect departmental data
+
+Disadvanteges:
+-sometimes copy of DW data may lies in different parts and hence data can be compromised.
+
+Types of Data marts:
+Supplier-->WholeSaler(DW)-->Retailer(DM)-->User
+
+Dependent --> dependent on DW
+Independent --> data marts created with source data without using DW and used by end user directly
+
+
+Diff between DW Vs 							Independent DM
+Many sources								Few Sources
+ETL											ETL
+Large Volumne of data						Small to medium volumne of data
+Dimensionally organised						Dimensionally Organised
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Lecture - IV : DW internals(Extrtact)
+
+What is user access layer in DW?
+What is staging layer in DW?
+Types of staging layer?
+Why do we need staging layer?
+
+In DW we follow ETL process, here we will deep dive into Extract process
+
+Extract -->
+
+Inside DW there are two layers
+1. Staging Layer -- where data lands from sources 
+2. User access layer -- where BI and other people takout data
+
+What inside staging layer?
+Data comes from different sources and gets stored in individual tables, for eg reliance mart , where you have data from zones and now there is addition of two stores in 2 zones.
+Hence data from two zones will lands in staging area through ingestion.
+Then Dimensional Modelling will be applied to make its schema uniform and store it in user access layer or say dw table.
+As we are thinking about only extract process, we will not do any modelling at ingestion level as fetching data asap is required.
+
+Types of staging layer:
+
+1. Persistent layer -- after extracting data is there at staging layer after ingesting into master table in user access layer. Staging layer is not emptied.
+advantages: 
+-can build user access layer without source system if data lost in user access layer.
+-data QA can be done directly from staging layer
+
+disadvantage:
+-more storage required
+-risk of data security
+
+2. Non persistent layer -- while here staging layer is emptied after ingesting into master table.
+advantages:
+-less storage required
+-less or no data security issues
+
+disadvantage:
+-need to go back to source if DW goes corrupt
+-data QA need to be done directly from source
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Lecture - V : DW internals(Transformations)
+
+There are two purpose of transformation in DW
+1. Uniformity
+2. Restructuring
+
+Common Data Transformation:
+
+1.Data Value Unification
+Suppose in data warehouse , data of zone-1 contains column status with values Y/N and zone-2 contains column mode with values active/inactive.
+This type of data needs to be uniformed while dumping into data warehouse.
+
+2.Data type and Size unification
+Suppose in above example, one data have data type as varchar and other one is boolean, hence this needs to be fixed with common datatype and size.
+
+3.Deduplication
+Duplicate data have to be fixed prior to entering data warehouse.
+
+4.Dropping columns and records
+Drop unnecessary columns and rows as per requirements.
+
+5.Common Known errors
+Such as handling missing, null data with proper rules.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Lecture - VI : DW internals(Loading)
+
+Two types of loading in DW
+1. Initial Loading
+-Done only once while going live, that is data ingested at the start or while go live
+
+2. Incremental Loading
+Data warehouse need to be updated with data. some examples can be
+New Data, Modified Data ,Delete/Inactive Data
+
+Types of Incremental Loading:
+1. Append : appending new data with exisiting data at last.
+2. In Place Update : overwriting the exisiting data with new ones directly at same place
+3. Complete Replacement : replacing whole data with existing data at one go.
+4. Rolling append :Suppose we are inserting data every month and have restricitons that we can keep data on only 24 months.
+If now one month of new data comes, it will get append at last but due to restriction we have to delete existing data of 1 month.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Lecture - VII : Fact and Dimension Tables
+Dimensional Modelling
+
+What is fact table?
+contains measurement that is only numbers
+
+What is dimension table?
+contains context of the numbers inside fact table
+
+moto:
+find out which products selling at which store under what promotional activity.
+
+so fact and dimension tables can be linked to each other for business use cases, bt primary key -Foreign Key relationship.
+
+Dimension Modelling Fundamentals:
+
+Why do we selected that table , rows, pk ,fk only in previous step?
+Four Steps of Dimensional Design:
+
+1. Select the Business
+Ask below questions to business as a consultant
+-what your business do?
+-what measurement you want to analyze?
+-how does your current operational dataset looks like?
+
+2. Declare the Grain
+Grain means level of details inside the fact table.
+Basically what each row in fact table explains.
+
+Sometimes it may contains aggregated_data , hence not sufficient for some queries. So we need to add dimensions to it , to gain the granularity.
+But it results in storage increase.
+
+3. Identify the Dimensions
+Identify which context applies to fact table as per requirements.
+
+4. Identify the Facts
+what measurements to be added in fact table for details like grain.
+
+We can derive fact , by using existing measurements in fact table, eg, profit.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Lecture - 8 : Types of Facts in Fact table
+
+What is additivity?
+simple adding, can add facts along any dimension
+
+What is semi-additive?
+can add along some dimension but not all.
+eg: deriving quantity of products available at one store on some day? possible
+but total quantity in inventory cannot be determined by these quantity available at each store, hence semi-additive
+
+What is non-additive?
+can't add facts along any dimension
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Lecture - 8 : Types of Fact table
+
+What are the types of facts table?
+-Transaction fact table (we have used till now)
+-Periodic snapshot fact table
+-Accumulating snapshot fact table
+
+Why do we need accumlating snapshot table?
+it is used where we have fixed start and end .
+eg: order delivery
+
+What are the challenges with periodic snapshot table?
+
+
+Periodic Snapshot table:
+eg: inventory table
+Here at regular interval we take a snapshot of the table, where limit is set like 3months , 2 months, weekly,yearly as per changes happenend.
+And after the expiry , data is not deleted it is aggregated.
+
+one extra table type is
+Factless Fact Table:
+where measurement is not there, but the recors itself is considered as fact.
+eg: student_Attendance_fact-table, which product doesn't sold at promotional activity,etc.
