@@ -1014,3 +1014,22 @@ left join cricket_dataset.rides as r on t.driver_id = r.passenger_id
 group by 1;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 2072
+--2072 - The Winner University
+
+--first take count of student_id from both tables and then put them in case when and compare
+select case when (select count(student_id) from cricket_dataset.california where score>=90) > (select count(student_id) from cricket_dataset.newyork where score>=90) then 'California University'
+when (select count(student_id) from cricket_dataset.newyork where score>=90) > (select count(student_id) from cricket_dataset.california where score>=90) then 'New York University'
+else 'No Winner' end as winner
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1075
+--1075 - Project Employees I
+
+--use join + round(Avg(exp+years),2)+group by
+select p.project_id,round(avg(e.experience_years),2) as average_years
+from project p
+join employee e
+on p.employee_id=e.employee_id
+group by project_id
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
