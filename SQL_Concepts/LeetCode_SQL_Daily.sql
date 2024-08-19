@@ -1033,3 +1033,87 @@ join employee e
 on p.employee_id=e.employee_id
 group by project_id
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1355
+--1355 - Activity Participants
+
+--use normal group by + where (Select min() and max()) or use row_number
+with cte as(
+select name,activity,count(activity) as cnt_act from Friends
+--row_number() over(order by count(activity) desc) as rn 
+group by activity)
+select activity from cte
+where cnt_act > (SELECT MIN(cnt_act) FROM cte) AND cnt_act < (SELECT MAX(cnt_act) FROM cte);
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1709
+--1709 - Biggest Window Between Visits
+
+--use lead(visit_date,1,default_value) over() + take diff of next and prev date + select max(diff) at Last
+with cte as(
+select user_id,lead(visit_date,1,'2021-1-1') over(PARTITION by user_id order by visit_date) as max  
+from UserVisits),
+cte2 as(
+  select user_id,(max-visit_date) as max from cte
+)
+select user_id,max(max) as biggest_window from cte2
+group by user_id
+order by user_id;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1204
+--1204 - Last Person to Fit in the Bus
+
+--use rolling sum + cte
+with cte as(
+select *,sum(weight) over(order by turn) as total_weight
+from Queue)
+select person_name from cte
+where total_weight<=1000
+order by total_weight DESC
+limit 1
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1112
+--1112 - highest-grade-for-each-student
+
+--use row_number() + over() or rank() + over()
+with cte as(
+select *,row_number() over(partition by student_id order by grade desc) as drn
+from Enrollments)
+select student_id,course_id,grade from cte
+where drn=1
+
+--using rank()
+with cte as(
+select *,rank() over(partition by student_id order by grade desc,course_id) as drn
+from Enrollments)
+select student_id,course_id,grade from cte
+where drn=1
+order by student_id
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 608
+--608 - Tree Node
+
+--use case when and subquery for inner nodes
+select id,
+case when p_id is null then 'Root'
+when id in (select p_id from Tree) then 'Inner'
+else 'Leaf' end as type
+from Tree;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1321
+--1321 - Restaurant Growth
+
+--first calculate sum using group By as total
+--then calculate running sum and average using above total
+--then add 6 days to date and return the result
+with cte as(
+select visited_on,sum(amount) as total_amt from Customer
+group by visited_on),
+cte2 as(
+select visited_on,sum(total_amt) over(order by visited_on ROWS 6 PRECEDING) as total_amount,
+round(avg(total_amt) over(order by visited_on ROWS 6 PRECEDING),2) as average_amt 
+from cte)
+select * from cte2
+where visited_on >= (select visited_on from cte2 order by visited_on limit 1) + 6
+order by visited_on
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
