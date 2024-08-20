@@ -1117,3 +1117,81 @@ select * from cte2
 where visited_on >= (select visited_on from cte2 order by visited_on limit 1) + 6
 order by visited_on
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1532
+--1532 - The Most Recent Three Orders
+
+--using equi join + window function
+with cte as(
+select c.name,o.order_date,o.customer_id,o.order_id,row_number() over(partition by o.customer_id order by o.order_date desc) as drn
+from Orders o
+join Customers c
+on o.customer_id=c.customer_id)
+select name,customer_id,order_id,order_date from cte
+where drn<=3
+order by 1,2,4 desc
+
+--another solution
+with cte as(
+select o.order_date,o.customer_id,o.order_id,row_number() over(partition by o.customer_id order by o.order_date desc) as drn
+from Orders o)
+select c.name,e.customer_id,e.order_id,e.order_date from Customers c
+join cte e
+on c.customer_id=e.customer_id
+where e.drn<=3
+order by 1,2,4 desc
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 2112
+--2112 - The Airport With the Most Traffic
+
+--first find sum by dept_id,arrival_id and then union it and calc rolling sum , then at last select max(sum)
+with cte as(
+select departure_airport as aid,sum(flights_count) as total from Flights
+group by 1),
+cte2 as(
+select arrival_airport as aid,sum(flights_count) as total from Flights
+group by 1),
+cte3 as(
+select * from cte
+union
+select * from cte2),
+cte4 as(
+select aid,sum(total) as ftot from cte3
+group by aid)
+select aid as airport_id from cte4
+where ftot =(SELECT max(ftot) from cte4)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 626
+--626 - Exchange Seats
+
+--use lead and lag + case when 
+with cte as(
+select *,lead(id) over(order by id) as next,
+lag(id) over(order by id) as prev from seat)
+select case when ((id%2=1)AND next is not null) then next
+when (id%2=0) then prev
+else id end as id,student
+from cte
+order by id
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 626
+--626 - Exchange Seats
+
+--first rank by product_id and with where condition extract latest price
+--now for values not null union it with cte 
+with cte as(
+select *,rank() over(partition by product_id order by change_date desc) as rn
+from products
+where change_date <='2019-08-16')
+select product_id, new_price as price
+from cte
+where rn=1
+union
+select product_id, 10 as price
+from products
+where product_id not in (select product_id from cte)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
