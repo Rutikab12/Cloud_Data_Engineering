@@ -1175,8 +1175,8 @@ from cte
 order by id
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---LeetCode Problems: 626
---626 - Exchange Seats
+--LeetCode Problems: 1164
+--1164 - Product Price at a Given Date
 
 --first rank by product_id and with where condition extract latest price
 --now for values not null union it with cte 
@@ -1192,6 +1192,88 @@ select product_id, 10 as price
 from products
 where product_id not in (select product_id from cte)
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1045
+--1045 - Customers Who Bought All Products
+
+--use left join + count distinct
+select a.customer_id from customer a
+left join product b
+on a.product_key=b.product_key
+group by a.customer_id
+having count(distinct a.product_key)=(select count(product_key) from product)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1193
+--1193 - Monthly Transactions I
+
+--group by date_format and country , use case when for counts of transactions
+select date_format(trans_date,'%Y-%m') as month,country,count(id) as trans_count,
+sum(case when state='approved' then 1 else 0 end) as approved_count,sum(amount) as trans_total_amount,
+sum(case when state='approved' then amount else 0 end) as approved_total_amount
+from transactions
+group by date_format(trans_date,'%Y%m'),country
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1158
+--1158. Market Analysis I
+
+--first appraoch using cte + left join
+with cte as(
+select u.user_id,sum(case when year(order_date)=2019 then 1 else 0 end) as orders_in_2019 from users u
+left join orders o
+on o.buyer_id=u.user_id
+group by u.user_id)
+select c.user_id as buyer_id,u.join_date,c.orders_in_2019 from cte c
+left join users u
+on c.user_id=u.user_id
+order by c.user_id
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1174
+--1174. Immediate Food Delivery II
+
+--use avg() and IN operator where select min(order_date)
+select round(avg(order_date = customer_pref_delivery_date)*100,2) as immediate_percentage
+from delivery
+where (customer_id,order_date) IN (select customer_id,min(order_date) from delivery
+group by 1)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 178
+--178. Rank Scores
+
+--use dense_rank()
+with cte as(
+select score,
+dense_rank() over(order by score desc) as rn
+from Scores)
+select score,rn as 'rank' from cte
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1126
+--1126 - Active Businesses
+
+--create fourth column avg_occ stored it in cte and then use group by business_id and having count(event_type)>1
+with cte as(
+select *,avg(occurrences) over(partition by event_type) as occ_avg from Events)
+select business_id
+from cte
+where occurrences > occ_avg
+group by business_id
+having count(event_type)>1
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 176
+--176 - Second Highest Salary
+
+--use rank or row_number
+with cte as(
+select Salary,
+row_number() over(order by salary desc) as rn
+from Employee)
+select MAX(Salary) as SecondHighestSalary
+from cte where rn=2
+
+--use normal query
+Select MAX(Salary) as SecondHighestSalary from Employee
+where Salary < (Select MAX(Salary) from Employee)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
