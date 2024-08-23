@@ -1275,5 +1275,52 @@ from cte where rn=2
 Select MAX(Salary) as SecondHighestSalary from Employee
 where Salary < (Select MAX(Salary) from Employee)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1667
+--1667 - Fix Names in Table
 
+--appraoch is first make first letter upper and remainig letters as lower and then concat them
+--upper(substring(name,1,1)) as first_letter,lower(substring(name,2,len(name)-1)) as last_letter
+select user_id,concat(upper(substring(name,1,1)),lower(substring(name,2,length(name)-1))) as name from users order by user_id;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 2175
+--2175 - The Change in Global Rankings
 
+--initial appraoch is first with row_number take out intial rank,
+--then take out new rank by adding points+point_change
+--and after that just cast those ranks as signed integer and substract to get rank diff
+
+with cte as(
+select t.team_id,t.name,t.points,p.points_change,
+ROW_NUMBER() over(order by t.points desc,name asc) as initial_rank,
+ROW_NUMBER() over(order by t.points+p.points_change desc) as new_rank
+from TeamPoints t
+left join PointsChange p
+on t.team_id=p.team_id)
+
+select team_id,name,(cast(initial_rank as SIGNED)-cast(new_rank as SIGNED)) as rank_diff
+from cte
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1549
+--1549 - The Most Recent Orders for Each Product
+
+--first rank and partition by product_id and select records where rk=1
+with cte as(
+select o.order_id,o.order_date,p.product_name,p.product_id,
+rank() over(partition by o.product_id order by o.order_date desc) as rn 
+from Orders o
+left JOIN Products p
+on o.product_id=p.product_id
+)
+select p.product_id,p.product_name,o.order_id,o.order_date from cte
+where rn=1
+order by 1,2,3
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 2298
+--2298 - Tasks Count in the Weekend
+
+--first find the count of weekdays and working days by using WEEKDAY
+--use daysofweek() to get days in numbers and take its sum to get count
+select sum(DAYOFWEEK(submit_date) in (5,6)) as weeknd_cnt,
+sum(DAYOFWEEK(submit_date) not in (5,6)) as working_cnt
+from tasks;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
