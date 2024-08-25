@@ -1324,4 +1324,4 @@ select sum(DAYOFWEEK(submit_date) in (5,6)) as weeknd_cnt,
 sum(DAYOFWEEK(submit_date) not in (5,6)) as working_cnt
 from tasks;
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Sick
+Nothing
