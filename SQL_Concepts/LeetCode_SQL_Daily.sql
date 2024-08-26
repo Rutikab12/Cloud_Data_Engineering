@@ -1324,4 +1324,52 @@ select sum(DAYOFWEEK(submit_date) in (5,6)) as weeknd_cnt,
 sum(DAYOFWEEK(submit_date) not in (5,6)) as working_cnt
 from tasks;
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Nothing
+--LeetCode Problem :1527
+--1527 - Patients With a Condition
+
+--use like operator
+select patient_id,patient_name,conditions from patients
+where conditions like '% DIAB1%' or conditions like 'DIAB1%';
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem :1341
+--1341 - Movie Rating
+
+--first join three tables, and then union name and title
+with cte as(
+    select mr.*,u.name,m.title from movierating mr
+    left join users u
+    on mr.user_id=u.user_id
+    left join movies m
+    on mr.movie_id=m.movie_id
+)
+(select name as results from cte
+group by name
+order by count(*) desc,name asc limit 1)
+union all
+(select title from cte
+where date_format(created_at,'%Y-%m')='2020-02'
+group by title
+order by avg(rating) desc,title limit 1)
+
+--second solution using union only
+(
+    select name as results
+    from
+        users
+        join movierating using (user_id)
+    group by user_id
+    order by count(1) desc, name
+    limit 1
+)
+union all
+(
+    select title
+    from
+        movierating
+        join movies using (movie_id)
+    where date_format(created_at, '%y-%m') = '2020-02'
+    group by movie_id
+    order by avg(rating) desc, title
+    limit 1
+);
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
