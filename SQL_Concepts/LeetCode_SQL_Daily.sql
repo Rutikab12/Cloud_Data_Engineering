@@ -1373,3 +1373,53 @@ union all
     limit 1
 );
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem :1179
+--1179 - Reformat Department Table
+
+--use case when with max() or sum()
+select id,max(case when month='Jan' then revenue else null end) as Jan_Revenue,
+max(case when month='Feb' then revenue else null end) as Feb_Revenue,
+max(case when month='Mar' then revenue else null end) as Mar_Revenue,
+max(case when month='Apr' then revenue else null end) as Apr_Revenue,
+max(case when month='May' then revenue else null end) as May_Revenue,
+max(case when month='Jun' then revenue else null end) as Jun_Revenue,
+max(case when month='Jul' then revenue else null end) as Jul_Revenue,
+max(case when month='Aug' then revenue else null end) as Aug_Revenue,
+max(case when month='Sep' then revenue else null end) as Sep_Revenue,
+max(case when month='Oct' then revenue else null end) as Oct_Revenue,
+max(case when month='Nov' then revenue else null end) as Nov_Revenue,
+max(case when month='Dec' then revenue else null end) as Dec_Revenue
+from department
+group by id
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem :262
+--262. Trips and Users
+
+--use left join on users u1,u2 and trips table, then calculate Percentage
+select
+request_at as day,
+round(avg(status != 'completed'), 2) as 'cancellation rate'
+from trips as t
+join users as u1 on (t.client_id = u1.users_id and u1.banned = 'no')
+join users as u2 on (t.driver_id = u2.users_id and u2.banned = 'no')
+where request_at between '2013-10-01' and '2013-10-03'
+group by request_at;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problem :601
+--601 - Human Traffic of Stadium
+
+--first take diff by using row_number - id, for consecutive ids it will give same diff
+--use condition where count(*)>=3 as mentioned in pblm statement and then order it by visit_date.
+with cte as(
+select *,id - (ROW_NUMBER() OVER (ORDER BY id)) AS rk
+from Stadium
+where people >= 100)
+select id,visit_date,people
+from cte
+where rk in(
+select rk
+from cte
+group by rk
+having count(*)>=3)
+order by visit_date;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
