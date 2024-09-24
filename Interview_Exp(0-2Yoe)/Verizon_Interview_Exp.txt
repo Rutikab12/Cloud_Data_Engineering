@@ -1,0 +1,55 @@
+Verizon Data Engineer Round-1
+Duration 1 hour
+SQL and BQ
+
+1. What is cast and safe_cast?
+2. what are different types of joins u have used and difference between them?(left,right,self,inner)
+3. We have two tables orders and customers, give me list of all customers who have ordered, there will be entry in orders table for it? (inner join)
+Order_Table
+order_id
+order_name
+order_cost
+
+Customer_Table
+customer_id
+customer_name
+wallet_balance
+
+4. We have two tables customer, tickets and a target table customer_Tickets, I want to update latest records with old record if exists and if not exists then append that record in bq table ? (merge statement)
+Customer_Table
+customer_id
+customer_name
+customer_email
+
+Tickets_Table
+ticket_id,
+customer_id,
+issue_desc,
+status
+
+5. What is stored procedure , if know explain?
+6. We have two tables orders and delivery, give me all the orders with their delivery status?
+Order_Table
+order_id
+order_name
+order_cost
+
+Delivery_Table
+delivery_id
+delivery_status
+delivery_address
+
+7. Do you know about views in bq?
+
+Airflow
+
+1. What is airflow?
+2. What is DAG?
+3. How do you define orchestrate tasks in airflow?
+4. I want to schedule a DAG , which i created on 1 sept 2024, scheduling for run on 22 Sept 2024, after that it should run daily once, how will you do it?
+5. Write me a code for DAG initialization?
+6. How do you run two tasks in parallel?(wanted to know dag_concurrency concept)
+7. What is schedule interval in DAG?
+8. How can you sent emails notification from DAG?
+9. How to fail DAG if runtime parameter are not appropriate?
+10. What are different libraries available in airflow, tell me how much you know?
