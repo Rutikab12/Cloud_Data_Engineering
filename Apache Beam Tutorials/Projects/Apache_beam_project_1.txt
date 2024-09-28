@@ -1,0 +1,104 @@
+Apache Beam Project:
+Parsing JSON string to Dictionary
+
+Python Code:
+import apache_beam as beam
+from apache_beam.options.pipeline_options import PipelineOptions, GoogleCloudOptions
+from apache_beam.io import ReadFromText, WriteToBigQuery
+import json
+
+# Define pipeline options
+import apache_beam as beam
+from apache_beam.options.pipeline_options import PipelineOptions, GoogleCloudOptions
+from apache_beam.io import ReadFromText, WriteToBigQuery
+import json
+
+# Define pipeline options
+class MyOptions(PipelineOptions):
+    @classmethod
+    def _add_argparse_args(cls, parser):
+        parser.add_value_provider_argument('--input', type=str, help='Input file in GCS')
+        parser.add_value_provider_argument('--output', type=str, help='BigQuery output table')
+
+def transform_data(element):
+    # Sample transformation: convert JSON string to dictionary and add a new field
+    record = json.loads(element)
+    record['new_field'] = 'transformed_value'
+    return record
+
+def run():
+    options = MyOptions()
+    
+    # Set Google Cloud specific options
+    google_cloud_options = options.view_as(GoogleCloudOptions)
+    google_cloud_options.project = 'pysparkone'
+    google_cloud_options.job_name = 'gcs-to-bigquery-etl'
+    google_cloud_options.staging_location = 'gs://first-bucket-beam/staging/'
+    google_cloud_options.temp_location = 'gs://first-bucket-beam/temp/'
+    
+    # Create pipeline
+    with beam.Pipeline(options=options) as p:
+        (
+            p 
+            | 'ReadFromGCS' >> ReadFromText(options.input)  # Read data from GCS
+            | 'TransformData' >> beam.Map(transform_data)   # Apply transformations
+            | 'WriteToBigQuery' >> WriteToBigQuery(
+                table=options.output,
+                schema='SCHEMA_AUTODETECT',
+                write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND
+            )  # Write transformed data to BigQuery
+        )
+
+if __name__ == '__main__':
+    print("job running")
+    run()
+    print("job successful")
+
+
+To Run:
+python json_to_dict.py \
+  --input gs://first-bucket-beam/json_to_dict.json \
+  --output pysparkone.dataflow_staging_s.json_to_dict
+
+
+Explanation:
+Steps Breakdown:
+Pipeline Options:
+
+You configure GCP-related options such as project ID, staging, and temporary locations.
+Command-line arguments are used to dynamically provide the input file and output BigQuery table.
+Reading Data:
+
+The ReadFromText transform reads text data from a GCS file. Here, it's assumed that the data is in JSON format.
+Transformation:
+
+The transform_data function parses the input JSON string into a Python dictionary and adds a new field.
+Writing to BigQuery:
+
+The WriteToBigQuery transform writes the transformed data into a BigQuery table. The schema is automatically detected, and the data is appended to the table.
+
+Why to Use _add_argparse_args?
+@classmethod:
+
+This decorator tells Python that _add_argparse_args is a class method, meaning it can be called on the class itself rather than on instances of the class.
+parser.add_value_provider_argument():
+
+This method adds custom arguments to the parser (the argparse.ArgumentParser object).
+--input: This argument defines the input GCS file (e.g., gs://your-bucket/input-file.txt). When running the pipeline, you can provide this argument to specify the input file location.
+--output: This argument defines the output BigQuery table (e.g., your-project:your_dataset.your_table).
+type=str: Specifies that the argument should be a string.
+help='...': Provides a description that will be shown if you run the script with --help.
+
+Why Use add_value_provider_argument?
+The method add_value_provider_argument is used instead of add_argument because add_value_provider_argument allows you to provide values that may be computed at runtime or be dependent on dynamic environments (like GCS paths, or options that could vary for each worker in a distributed pipeline).
+
+Key Points:
+Custom Arguments: Allows you to pass custom command-line arguments for things like input and output files.
+Dynamic Configuration: Useful for dynamically specifying input and output when running the pipeline, rather than hardcoding them in the script.
+
+Purpose:
+The purpose of _add_argparse_args is to define and register additional command-line arguments for the pipeline. This allows you to pass custom parameters (such as input and output locations) when running the pipeline.
+
+How It Works:
+cls: Refers to the class itself (MyOptions, a subclass of PipelineOptions).
+parser: This is an instance of Python's argparse.ArgumentParser, which is responsible for parsing command-line arguments.
