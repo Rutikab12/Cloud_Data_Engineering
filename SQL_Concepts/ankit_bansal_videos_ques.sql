@@ -785,3 +785,19 @@ case when Team_2=Winner then 1 else 0 end as win_flag
 from cricket_dataset.icc_world_cup) as subquery
 group by subquery.team_name
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Merge Statement in SQL
+
+--eg: update the existing records for already present product_id
+--append new records for new product_id
+--delete if records is in target table but not in source table
+
+merge TargetProducts as t
+using SourceProducts as s
+on t.ProductID=s.ProductID
+when matched then update
+set t.Price=s.Price,t.ProductName=s.ProductName
+when not matched by target then
+insert values(s.ProductID,s.ProductName,s.Price)
+when not matched by source then
+delete;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
