@@ -61,8 +61,8 @@ group by user_id;
 select player_id,min(event_date) as first_login from activity group by 1;
 
 -------------------------------------------------------------------------------------------------------------------------------------------
---leetcode : 511
---Game Play Analysis I
+--leetcode : 1571
+--Warehouse Volume
 
 --do inner join on product_id, sum(w*l*h*units) as volume
 --group by warehouse_name
@@ -75,22 +75,42 @@ on p.product_id=w.product_id
 group by 1;
 
 -------------------------------------------------------------------------------------------------------------------------------------------
+--leetcode : 586
+--Customer Placing Largest Number of Orders
 
-
-
+--using cte and selecting max cause if duplicate count comes, it should not be missed.
+--first find count of orders per customer_number and then take cnt=max(count)
+with cte as(
+select customer_number,count(order_number) as cnt from orders
+group by customer_number)s
+select customer_number from cte
+where cnt=(select max(cnt) from cte);
 
 -------------------------------------------------------------------------------------------------------------------------------------------
+--leetcode : 1741
+--Find Total Time Spent By Each Employee
 
-
-
+--first do group by event_Date and emp_id, then sum(out-in) to get total_time
+select event_day as day,emp_id,sum(out_time-in_time) as total_time from employees
+group by emp_id,event_day;
 -------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1173
+--Immediate Food Delivery I
 
-
-
+--use sum(compare order= prefer date), then take count of delivery_id and do percentage calculation.
+select round(sum(order_date=customer_pref_delivery_date)/count(1)*100,2) as immediate_percentage from Delivery;
 -------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1445
+--Apple & Oranges
 
-
-
+--use case when and take diff
+with cte as(
+select sale_date,
+sum(case when fruit='apples' then sold_num else 0 end) as apple_count,
+sum(case when fruit='oranges' then sold_num else 0 end) as orange_count 
+from cricket_dataset.sales
+group by sale_date)
+select sale_date,(apple_count-orange_count) as diff from cte
 -------------------------------------------------------------------------------------------------------------------------------------------
 
 
