@@ -112,25 +112,38 @@ from cricket_dataset.sales
 group by sale_date)
 select sale_date,(apple_count-orange_count) as diff from cte
 -------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1699
+--Number of Calls Between Two Persons
 
-
-
-
--------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
--------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
+--least and greatest will be give us least value in person_1 ans greatest_value in person_2.
+--then group by person_1,_2 and take count(*) and sum(Duration)
+select least(from_id,to_id) as person_1,greatest(from_id,to_id) as person_2,duration,
+count(*) as call_count,sum(duration) as call_duration
+from Calls
+group by least(from_id,to_id),greatest(from_id,to_id);
 
 -------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 1587
+--Bank Account Summary II
 
+--use group by and having clause along with left join
+select u.name,sum(t.amount) as balance from users u
+left join transactions t
+on u.account=t.account group by t.account having balance > 10000;
 
+-------------------------------------------------------------------------------------------------------------------------------------------
+--LeetCode Problems: 182
+--Duplicate Emails
 
+--find duplicate records method
+select email from person group by email having count(email)>1;
+-------------------------------------------------------------------------------------------------------------------------------------------
+--Leetcode Problems: 1050
+--Actors and Directors who have coorporated more than 3 times
 
+-- same pattern as above question
+select actor_id,director_id from actordirector
+group by actor_id,director_id having count(timestamp)>=3;
 -------------------------------------------------------------------------------------------------------------------------------------------
 
 

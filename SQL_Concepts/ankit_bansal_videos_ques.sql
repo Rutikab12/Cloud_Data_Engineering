@@ -801,3 +801,16 @@ insert values(s.ProductID,s.ProductName,s.Price)
 when not matched by source then
 delete;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--type-1 implementation
+insert into product_dim
+select product_id,product_name,price,CURRENT_TIMESTAMP
+from product_stg
+where product_id not in (select product_id from product_dim)
+--first run update and then insert
+update product_dim
+set price=product_stg.price,start_date=CURRENT_TIMESTAMP
+from product_stg
+WHERE product_dim.product_id=product_stg.product_id
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
