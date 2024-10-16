@@ -145,20 +145,34 @@ select email from person group by email having count(email)>1;
 select actor_id,director_id from actordirector
 group by actor_id,director_id having count(timestamp)>=3;
 -------------------------------------------------------------------------------------------------------------------------------------------
+--Leetcode Problems: 1511
+--Customer order Frequency
 
-
-
+--use join + groupby + extract + sum(if(month(order_date)=6,q*p,0))>=100
+select c.name,c.customer_id from Customers c
+join Orders o on c.customer_id=o.customer_id
+join Product p on o.product_id=p.product_id
+where extract(year from o.order_date)=2020
+group by c.customer_id
+having sum(if(month(order_date)=6,o.quantity*p.price,0))>=100
+and sum(if(month(order_date)=7,o.quantity*p.price,0))>=100
 
 -------------------------------------------------------------------------------------------------------------------------------------------
+--Leetcode Problems: 1693
+--Daily Leads and Partners
 
-
-
-
+--use count(distinct(leads column)) and group by date_id and make_name
+select date_id,make_name,count(distinct lead_id) as unique_leads,count(distinct partner_id) as unique_partners
+from dailysales group by date_id,lower(make_name);
 -------------------------------------------------------------------------------------------------------------------------------------------
+--Leetcode Problems: 1495
+--Friendly Movies Streamed Last Month
 
-
-
-
+--take distinct title name and use date_format to get month and year 2020 June
+select distinct c.title from Contents c
+join TVProgram t
+on c.content_id=t.content_id
+where date_format(program_date, '%Y%m') = '202006' and kids_content='Y' and content_type='Movies'
 -------------------------------------------------------------------------------------------------------------------------------------------
 
 
