@@ -1,0 +1,234 @@
+Interview Questions on Airflow for 2.5 Years of experience 
+
+Complexity - Low
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. What is Apache Airflow, and what is its primary use?
+	Airflow is an open-source platform for programmatically defining, scheduling, and monitoring workflows. 
+	Its primary use is to manage and automate data pipelines.
+
+2. How does Airflow differ from other workflow management tools?
+	Airflow stands out due to its scalability, flexibility, and extensibility. 
+	It supports multiple programming languages, has a vast library of operators, and integrates well with other tools.
+	
+3. What is the difference between a Task and an Operator?
+	A task is a single unit of work, while an operator is a reusable implementation of a task.
+
+4. Explain Sensors and Triggers in Airflow.
+	Sensors monitor external systems for specific conditions, triggering tasks when conditions are met. 
+	Triggers define actions to take when sensors detect changes.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	
+1.What is DAG in airflow?
+	Directed Acyclic Graph is a collection of tasks organised in a way that specifies their sequence of execution.
+	It ensures no cycles exists, meaning tasks cannot be depend on themselves directly or indirectly.
+	Cause in DAG tasks are arranged in a independent sequence , if cycle is found, it will create loop and airflow will not be able to determine where to start and end execution.
+	
+2. How do you schedule a DAG in airflow?
+	Scheduling a DAG in airflow defines when and how often a workflow should run.
+	The Schedule Paramter states when a DAG should run. It can be
+	- Cron expression (for everyday)
+	- Preset Schedule (for hourly,daily,monthly)
+	- None (for manual trigger)
+	- Start Date
+		The start_date parameter specifies when the DAG starts running.
+		Airflow does not trigger a DAG immediately; it waits until the next schedule after the start_date.
+	- Catchup
+		By default, Airflow runs all missed DAG instances since the start_date.
+		Use catchup=False to disable this behavior.
+	-------------------------------------------------------------------------------------------------------------------------
+	- example with schedule paramter in DAG:
+	
+	from airflow import DAG
+	from datetime import datetime
+	
+	with DAG(
+		dag_id="example_dag",
+		schedule_interval='@daily', #Runs once a day at midnight
+		start_date=(2024,1,1),
+		catchup=False, #Only runs from current date onward
+	) as dag:
+	--------------------------------------------------------------------------------------------------------------------------
+	Commonly used preset schedule intervals:
+	Preset		Description								Cron Equivalent
+	@once		Run only once after enabling			N/A
+	@hourly		Run every hour							0 * * * *
+	@daily		Run once a day at midnight				0 0 * * *
+	@weekly		Run once a week at midnight Sunday		0 0 * * 0
+	@monthly	Run once a month at midnight			0 0 1 * *
+	@yearly		Run once a year at midnight Jan 1		0 0 1 1 *
+	--------------------------------------------------------------------------------------------------------------------------
+	Custom Cron Expressions:
+	Format : minute hour day_of_month month day_of_week
+	examples:
+	schedule_interval='0 9 * * 1-5' #runs everyday at 9AM from Mon-Fri
+	schedule_interval='*/10 * * * *' #runs at every 10 Min
+	schedule_interval='0 3 15 * *' #run at 3AM on 15th of every month
+	schedule_interval='0 6 * * 1' #runs every Monday at 6AM
+	#below will run at a specific time only
+	schedule_interval=None
+	start_date=datetime(2024, 1, 1, 10, 0, 0)  # Runs at Jan 1, 2024, 10:00 AM
+	---------------------------------------------------------------------------------------------------------------------------
+	- You cannot write multiple schedule intervals for DAG. For that you need separate DAG's.
+	- If start date is in Past, Airflow tries to schedule all backdated runs unless catchup=False.
+	
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. Type of Operators in Airflow?
+	BashOperator - Executes bash commands
+	PythonOperator - Executes python functions
+	DummyOperator - Used as a placeholder or to create dummy tasks
+	
+	- Detailed example of all above operators
+	
+	with DAG(
+		dag_id="operatordag",
+		schedule_interval='@daily',
+		start_date=(2024,1,1),
+		catchup=False,
+	) as dag:
+	
+		start=DummyOperator(
+			task_id='start'
+		)
+		
+		bash_task=BashOperator(
+			task_id='list_files',
+			bash_command='ls -l', #lists all files
+		)
+		
+		python_task=PythonOperator(
+			task_id='process_data',
+			python_callable=process_data,
+			op_kwargs=['if there is any parameter you may want to pass to function'],
+		)
+		
+		end=DummyOperator(
+			task_id='end'
+		)
+	
+	start >> bash_task >> python_task >> end
+	------------------------------------------------------------------------------------------------------------
+2. How do you define task dependencies?
+	task1 >> task2 >> end
+	end << task2 << task1
+	
+	or using .set_downstream() and .set_upstream() methods.
+	These methods are used to explicitly set dependencies between tasks either dynamically or programatically.
+	
+	- set_downstream()
+		this method sets the tasks as the next dependent task. like task1 >> task2
+		eg : task1.set_downstream(task2)
+	- set_upstream()
+		this methods sets the tasks as the prior task. like task2 << task1
+		task2.set_upstream(task1)
+
+	doubt : Would you like an example combining these methods with real-world tasks, like data ingestion or ETL workflows?
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. What happends when a task fails, and how do you handle retries?
+	Airflow handles this with retries, retry_delay and email_notifications,trigger rules
+	If no of retries exhausted, dag marked as failed.
+	
+	- Trigger rules
+		Modify how downstream tasks behave after tasks fails.
+		all_failed : downstream tasks run only if all upstream task failed
+		one_failed : downstream tasks run if any upstream task failed
+		all_done : downstream tasks run regardless of upstream tasks status
+	
+	example :
+	from airflow import DAG
+	from datetime import timedelta,datetime
+	with DAG(
+		dag_id="failure handling",
+		schedule_interval='@daily',
+		start_date=(2024,1,1),
+		catchup=False,
+	) as dag:
+	
+		#task will fail intentionally
+		failing_task=BashOperator(
+			task_id='1',
+			bash_command='exit 1', #this command forces task to fail
+			retries=3, #no of retries allowd
+			retry_delay=timedelta(minutes=2), #delay between retries
+			email_on_failure=True, #sends email on fail
+			email=['aa@dummy.com'],
+		)
+		
+		#dependent task
+		dependent_task=BashOperator(
+			task_id='2',
+			bash_command='echo "dependent task executed"',
+		)
+		
+		failing_task >> dependent_task
+	---------------------------------------------------------------------------------------------------------------------------
+2. How does scheduler work in Airflow?
+	Airflow Scheduler is a core component of Apache Airflow, responsible for orchestrating the execution of workflows.
+	It determines when a DAG should be triggered based on its schedule_interval and start_date and enqueues tasks for execution.
+	
+	- Working of scheduler
+		1. DAG Parsing:
+			Scheduler periodically scans the dags in dags_folder.
+			Parse and validated their structure, check for new or updated dags.
+			Load them into metdata database.
+		2. Creating DAG runs:
+			For each parse dag,the scheduler
+			Compares the schedule_interval and start_date with current_time.
+			Creates a DAG run for each time the DAG is scheduled to execute.
+		3.Task Dependency Evaluation:
+			Within each DAG run scheduler evaluates task dependencies.
+			Check which tasks are ready to run.
+			Updates the task state in metadata database (queued,running,success,etc)
+		4.Task Execution Enqueue
+			Task that are ready to execute are enqueued for execution by executor.
+			The executor decided how and where task will run (eg: locally, celery or kubernetes executor)
+		5.Monitoring and Updates
+			The scheduler monitors the status of running tasks and update the tasks state in metadata database.
+			It retries if fails and revaluates dependencies for downstream tasks.
+	----------------------------------------------------------------------------------------------------------------------------
+3. What happens when multiple DAG's are running simulataneously?
+	Airflow executes them based on their priority and resource availability.
+	Parallelism is controlled by parallelism and dag_concurrency configurations.
+	This can be further breakdown into following parts:
+	1.Scheduler Part:
+		Scheduler enqueues tasks for execution and delegates their actual execution to executor.
+	2.Executors Role:
+		The executor determines how tasks from multiple DAG's are distributed across available resources (eg CPU,memory,etc)
+	3.Parallelism and Limits:
+		parallelism : the maximum no of tasks can run across all dags at the same time. example , parallelism=14 then 14 tasks across all dags can run at same time.
+		dag_concurrency : the maximum no of tasks that can run simulataneously for single dag.
+		max_active_runs : limits how many dag runs for single DAG can be active at the same time. example. max_active_runs=2
+		Task-level-limit : configure pool parameter to limit resources a task can use.
+		Example:
+		Database tasks in multiple DAGs share a pool with pool_slots=5.
+		Only 5 tasks can access the database at a time, regardless of the number of DAGs.
+	4.Priority Weights:
+		Tasks have a priority_weight parameter, which determines their execution order when resources are limited.
+		Higher-priority tasks are executed first.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	
+1. What is an XCom in Airflow?
+	An XCom (Cross Communication) is a mechanism for sharing small amount of data between tasks. It uses key-value store.
+	
+	To pass data between tasks we use:
+	xcomm.push() and xcomm.pull()
+	example:
+	def push_data(**kwargs):
+		kwargs['ti'].xcom_push( key='my_key' , value='some_data')
+	def pull_data(**kwargs):
+		kwargs['ti'].xcom_pull(key='my_key')
+
+2. How would you debug a failed task in Airflow?
+	check the tasks log on Airflow UI.
+	Verify DAG definition for syntax or logical erros.
+	Look at the task dependencies and env configurations.
+
+3. Describe how would you use Airflow to ingest data from an API?
+	Use a PythonOperator to make API requests.
+	Parse the API response and save it to storage (S3 bucket, BQ, etc)
+	example :
+	import requests
+	def fetch_data():
+		response=requests.get('https://api.example.com/data')
+		with open('/tmp/data.json', 'w') as f:
+        f.write(response.text)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
