@@ -3083,4 +3083,83 @@ select customer_id,extract(month from order_date) as month_number,sum(total_amou
 from cricket_dataset.orders
 group by customer_id,2
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Questions using lead and lag concepts.
+
+--Write a query to compare each employee's salary with the previous employee's salary based on their employee_id.
+--Basic LAG() Query
+select employee_id,salaryq, 
+lag(salary) over(order by employee_id) as previous_salary
+from employees;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Write a query to find the next order date for each customer based on their order history.
+--Basic LEAD() Query
+SELECT 
+    customer_id,
+    order_date,
+    LEAD(order_date) OVER (PARTITION BY customer_id ORDER BY order_date) AS next_order_date
+FROM orders;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Write a query to calculate the difference in sales between the current and the previous month for each product.
+--compare concurrent and previous month sales
+SELECT 
+    product_id,
+    sales_month,
+    sales_amount,
+    LAG(sales_amount) OVER (PARTITION BY product_id ORDER BY sales_month) AS previous_month_sales,
+    sales_amount - LAG(sales_amount) OVER (PARTITION BY product_id ORDER BY sales_month) AS sales_difference
+FROM monthly_sales;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Write a query to find employees whose current salary is higher than their previous salary
+SELECT 
+    employee_id,
+    salary,
+    LAG(salary) OVER (PARTITION BY department_id ORDER BY hire_date) AS previous_salary
+FROM employees
+WHERE salary > LAG(salary) OVER (PARTITION BY department_id ORDER BY hire_date);
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Write a query to calculate the time difference (in hours) between consecutive log entries for each user.
+--find the time difference between consecutive events
+SELECT 
+    user_id,
+    event_time,
+    LAG(event_time) OVER (PARTITION BY user_id ORDER BY event_time) AS previous_event_time,
+    EXTRACT(EPOCH FROM event_time - LAG(event_time) OVER (PARTITION BY user_id ORDER BY event_time)) / 3600 AS time_difference_hours
+FROM event_logs;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Write a query to flag rows as "start" or "end" of an activity period, based on consecutive timestamps for a user. Assume there's no activity if the time gap is greater than 1 hour.
+--flag start and end of activity periods
+SELECT 
+    user_id,
+    event_time,
+    CASE 
+        WHEN LAG(event_time) OVER (PARTITION BY user_id ORDER BY event_time) IS NULL 
+             OR EXTRACT(EPOCH FROM event_time - LAG(event_time) OVER (PARTITION BY user_id ORDER BY event_time)) / 3600 > 1 
+        THEN 'start'
+        ELSE NULL
+    END AS period_start,
+    CASE 
+        WHEN LEAD(event_time) OVER (PARTITION BY user_id ORDER BY event_time) IS NULL 
+             OR EXTRACT(EPOCH FROM LEAD(event_time) OVER (PARTITION BY user_id ORDER BY event_time) - event_time) / 3600 > 1 
+        THEN 'end'
+        ELSE NULL
+    END AS period_end
+FROM event_logs;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Calculate Running Total with Dynamic LAG
+--Write a query to calculate the difference in sales between the current date and the last date where sales exceeded 1000 for each product.
+SELECT 
+    product_id,
+    sale_date,
+    sales_amount,
+    sale_date - LAG(sale_date) OVER (PARTITION BY product_id ORDER BY sale_date) AS days_since_last_high_sales,
+    sales_amount - LAG(sales_amount) OVER (PARTITION BY product_id ORDER BY sale_date) AS difference_from_last_high_sales
+FROM (
+    SELECT 
+        product_id, 
+        sale_date, 
+        sales_amount, 
+        CASE WHEN sales_amount > 1000 THEN sale_date ELSE NULL END AS high_sales_date
+    FROM product_sales
+) AS subquery;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
