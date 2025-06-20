@@ -115,8 +115,11 @@ class IEDynamoIngestionOperator(BaseOperator):
                 # Generate archive filename with timestamp
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 original_filename = blob_name.split('/')[-1]
+                print(original_filename)
                 archive_filename = f"{original_filename.split('.')[0]}_{timestamp}.csv"
+                print(archive_filename)
                 archive_path = data_archival_path + archive_filename
+                print(archive_path)
 
                 mv_blob(Variable.get('ie_bucket'), blob_name, Variable.get('ie_dag_bucket'),archive_path)
                 
