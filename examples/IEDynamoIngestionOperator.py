@@ -95,6 +95,39 @@ class IEDynamoIngestionOperator(BaseOperator):
             sql = "select \"secretKeyName\" from files where \"originalFileName\" like " \
                   "'" + filename1 + "%' order by \"createdAt\" desc limit 1;"
             return sql'''
+        #get files in error folder and move them to error_archive folder and show at frontend
+        def move_error_file(data_retrieval_path,data_archival_path):
+            storage_client = storage.Client()
+            source_bucket = storage_client.bucket(Variable.get('ie_bucket'))
+            blobs = client.list_blobs(Variable.get('ie_bucket'), prefix=data_retrieval_path)
+            
+            data_archival_path=data_archival_path+'error_files/'
+            
+            moved_files = []
+            
+            for blob in blobs:
+                blob_name = str(blob.name)
+        
+                # Skip if not in error folder or not a CSV file
+                if "error/" not in blob_name or not blob_name.lower().endswith('.csv'):
+                    continue
+                    
+                # Generate archive filename with timestamp
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                original_filename = blob_name.split('/')[-1]
+                archive_filename = f"{original_filename.split('.')[0]}_{timestamp}.csv"
+                archive_path = data_archival_path + archive_filename
+
+                mv_blob(Variable.get('ie_bucket'), blob_name, Variable.get('ie_dag_bucket'),archive_path)
+                
+                moved_files.append(blob_name)
+                logging.info(f"Moved error file {blob_name} to {archive_path}")
+            
+            if not moved_files:
+                logging.info(f"No error CSV files found to archive under {data_retrieval_path}")
+            else:
+                logging.info(f"Archived {len(moved_files)} error CSV files")    
+        
 
         def get_file_from_bucket(file_type,file_period, folder_name, data_retrieval_path):
             postgres_hook = PostgresHook(postgres_conn_id="cloudsql_conn_ie", schema=Variable.get('ie_cloudsql_schema'))
@@ -124,29 +157,6 @@ class IEDynamoIngestionOperator(BaseOperator):
                     if tmp_filename.lower() is not None:
                         filename = tmp_filename
 
-                        '''sql_to_run = return_sql(filename1)
-                        logging.info("AEAD INFO SQL " + filename1 + " : " + sql_to_run)
-                        cursor.execute(sql_to_run)
-                        result = cursor.fetchone()
-                        # head, tail = os.path.split(file_list[i])
-                        decrypt_key_name = 'DEC_KEY_' + file_type1
-                        
-                        if result is None:
-                            # print(decrypt_key_name + " : " + 'NONE!!! setting default key')
-                            # task_instance.xcom_push(key="DECRYPT_KEY" + str(i+1), value='DEFAULT_KEY_VAL')
-                            print("DECRYPTION Key Not Found !! SQL : " + sql_to_run)
-                            raise AirflowFailException(decrypt_key_name + " key not found.")
-                        else:
-                            print(decrypt_key_name + " : " + str(result[0]))  # Security Breach remove this
-
-                            vault_key = str(result[0])
-                            vault_addr = Variable.get('vault_addr')
-                            vault_role = Variable.get('vault_role_ie')
-                            vault_secret = Variable.get('vault_path_ie')
-                            vault_secret_key = vault_key
-                            vault_secret_pass = CustomVaultClass.execute(vault_addr, vault_role, vault_secret,
-                                                                         vault_secret_key)'''
-
                         head, tail = os.path.split(filename)
                         print('filename: ' + filename)
                         print('head: ' + head) #Dynamo/Inbound/Landing/Transactions
@@ -160,20 +170,9 @@ class IEDynamoIngestionOperator(BaseOperator):
                         destination_path = 'data/ie/' + folder_name + '/' + file_type + '.csv'
                         print("for loop dest path: "+destination_path)
 
-                        '''decrypted_path = '/home/airflow/gcs/data/ie/' + folder_name + '/dec/'
-                        if not os.path.exists(decrypted_path):
-                            os.makedirs(decrypted_path)
-                        #decrypted_path: /home/airflow/gcs/data/ie/ie_dynamo_transaction_data_ingestion/dec/dynamo_transaction_file.txt
-                        decrypted_path_final = decrypted_path + file_type + '.txt'
-                        print('decrypted_path_final: '+decrypted_path_final)'''
 
                         mv_blob(Variable.get('ie_bucket'), filename, Variable.get('ie_dag_bucket'),
                                 destination_path)
-
-                        '''with open('/home/airflow/gcs/' + destination_path, 'rb') as f:
-                                status = gpg.decrypt_file(f, output=decrypted_path_final, passphrase=secret_pass_dec)
-                                print("STATUS OK ? " + str(status.ok))
-                                print("STDERR: " + str(status.stderr))'''
 
                         logging.info(
                             'File found for : ' + file_type + ' and for file_period: ' + file_period)
@@ -189,13 +188,14 @@ class IEDynamoIngestionOperator(BaseOperator):
                         "Error : file_type: " + file_type + " Not Found !! for file_period: " + file_period)
 
                 return found_flag, filename
-            
+         
         #fetch global variables---------------------------------------------------------------------------------------------------------
         file_period = self.period
         folder_name = self.dag_name_id
         #folder_name='ie_dynamo_transaction_data_ingestion'
         delimiter = self.delimiter
         data_retrieval_path=self.data_retrieval_path
+        data_archival_path=self.data_archival_path
         file_type = 'dynamo_transaction_file'
 
         postgres_hook = PostgresHook(postgres_conn_id="cloudsql_conn_ie", schema=Variable.get('ie_cloudsql_schema'))
@@ -208,6 +208,9 @@ class IEDynamoIngestionOperator(BaseOperator):
         dag_run_id = self.run_id
         workflow_name = dag_name_id
         dag_run_id = dag_run_id
+        
+        #fetch error files
+        move_error_file(data_retrieval_path,data_archival_path)
 
         # Fetch Transactions file
         get_file_from_bucket(file_type, file_period, folder_name, data_retrieval_path)
