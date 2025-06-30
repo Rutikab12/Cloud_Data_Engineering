@@ -52,13 +52,14 @@ pd.set_option('display.max_colwidth', None)
 class IEDynamoIngestionOperator(BaseOperator):
     template_fields = (
         'period', 'batch_id','delimiter',
-        'latest_key_name', 'dag_name_id', 'run_id','data_retrieval_path','data_archival_path','bq_table_name')
+        'latest_key_name', 'dag_name_id', 'run_id','data_retrieval_path','data_archival_path','bq_table_name','directory_value')
 
     def __init__(self, period: str, batch_id: str, latest_key_name: str, dag_name_id: str, run_id: str,
-                 delimiter:str,data_retrieval_path:str,data_archival_path:str,bq_table_name:str,**kwargs) -> None:
+                 delimiter:str,data_retrieval_path:str,data_archival_path:str,bq_table_name:str,directory_value:str,**kwargs) -> None:
         super().__init__(**kwargs)
         self.period = period
         self.batch_id = batch_id
+        self.directory_value=directory_value
         self.delimiter = delimiter
         self.latest_key_name = latest_key_name
         self.dag_name_id = dag_name_id
@@ -96,12 +97,11 @@ class IEDynamoIngestionOperator(BaseOperator):
                   "'" + filename1 + "%' order by \"createdAt\" desc limit 1;"
             return sql'''
         #get files in error folder and move them to error_archive folder and show at frontend
-        def move_error_file(data_retrieval_path,data_archival_path):
-            storage_client = storage.Client()
-            source_bucket = storage_client.bucket(Variable.get('ie_bucket'))
+        def move_error_file(data_retrieval_path,data_archival_path,directory_value):
+            client = storage.Client()
             blobs = client.list_blobs(Variable.get('ie_bucket'), prefix=data_retrieval_path)
             
-            data_archival_path=data_archival_path+'error_files/'
+            data_archival_path=data_archival_path+ 'error_files' + '/' + directory_value + '/'
             
             moved_files = []
             
@@ -113,15 +113,15 @@ class IEDynamoIngestionOperator(BaseOperator):
                     continue
                     
                 # Generate archive filename with timestamp
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                #timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 original_filename = blob_name.split('/')[-1]
-                print(original_filename)
-                archive_filename = f"{original_filename.split('.')[0]}_{timestamp}.csv"
-                print(archive_filename)
+                print("error file name: ",original_filename)
+                archive_filename = f"{original_filename.split('.')[0]}.csv"
+                #print(archive_filename)
                 archive_path = data_archival_path + archive_filename
-                print(archive_path)
+                #print(archive_path)
 
-                mv_blob(Variable.get('ie_bucket'), blob_name, Variable.get('ie_dag_bucket'),archive_path)
+                mv_blob(Variable.get('ie_bucket'), blob_name, Variable.get('ie_bucket'),archive_path)
                 
                 moved_files.append(blob_name)
                 logging.info(f"Moved error file {blob_name} to {archive_path}")
@@ -199,6 +199,7 @@ class IEDynamoIngestionOperator(BaseOperator):
         delimiter = self.delimiter
         data_retrieval_path=self.data_retrieval_path
         data_archival_path=self.data_archival_path
+        directory_value=self.directory_value
         file_type = 'dynamo_transaction_file'
 
         postgres_hook = PostgresHook(postgres_conn_id="cloudsql_conn_ie", schema=Variable.get('ie_cloudsql_schema'))
@@ -213,7 +214,7 @@ class IEDynamoIngestionOperator(BaseOperator):
         dag_run_id = dag_run_id
         
         #fetch error files
-        move_error_file(data_retrieval_path,data_archival_path)
+        move_error_file(data_retrieval_path,data_archival_path,directory_value)
 
         # Fetch Transactions file
         get_file_from_bucket(file_type, file_period, folder_name, data_retrieval_path)
