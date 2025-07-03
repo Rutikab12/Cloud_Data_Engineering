@@ -85,6 +85,21 @@ class IEDynamoIngestionOperator(BaseOperator):
 
             print(f'File moved from {source_blob} to {new_blob_name}')
             
+        #archive and delete files from source blob
+        def mv_blob_delete(bucket_name, blob_name, new_bucket_name, new_blob_name):
+            storage_client = storage.Client()
+            source_bucket = storage_client.bucket(bucket_name)
+            source_blob = source_bucket.blob(blob_name)
+            destination_bucket = storage_client.bucket(new_bucket_name)
+
+            # copy to new destination
+            new_blob = source_bucket.copy_blob(
+                source_blob, destination_bucket, new_blob_name)
+            # delete in old destination
+            source_blob.delete()
+
+            print(f'File deleted from {source_blob} moved to {new_blob_name}')
+            
         data_retrieval_path=self.data_retrieval_path
         data_archival_path=self.data_archival_path
         bq_table_name=self.bq_table_name
@@ -121,7 +136,7 @@ class IEDynamoIngestionOperator(BaseOperator):
                 archive_path = data_archival_path + archive_filename
                 #print(archive_path)
 
-                mv_blob(Variable.get('ie_bucket'), blob_name, Variable.get('ie_bucket'),archive_path)
+                mv_blob_delete(Variable.get('ie_bucket'), blob_name, Variable.get('ie_bucket'),archive_path)
                 
                 moved_files.append(blob_name)
                 logging.info(f"Moved error file {blob_name} to {archive_path}")
@@ -177,13 +192,17 @@ class IEDynamoIngestionOperator(BaseOperator):
                         #folder_name is nothing but dag_name
                         destination_path = 'data/ie/' + folder_name + '/' + file_type + '.csv'
                         print("for loop dest path: "+destination_path)
+                        mv_blob(Variable.get('ie_bucket'), filename, Variable.get('ie_dag_bucket'),destination_path)
 
-
-                        mv_blob(Variable.get('ie_bucket'), filename, Variable.get('ie_dag_bucket'),
-                                destination_path)
-
-                        logging.info(
-                            'Valid File found for : ' + file_type + ' and for file_period: ' + file_period)
+                        logging.info('Valid File found for : ' + file_type + ' and for file_period: ' + file_period)
+                        
+                        try:
+                            modified_destination_path = data_archival_path + tail
+                            mv_blob_delete(Variable.get('ie_bucket'), filename, Variable.get('ie_bucket'),
+                                                    modified_destination_path)
+                            print("File moved to Archived Folder")
+                        except:
+                            print("Unable to move file to Archive Folder")
 
                         found_flag = True
                         return found_flag, filename
@@ -421,18 +440,18 @@ class IEDynamoIngestionOperator(BaseOperator):
                 raise AirflowFailException(" No Data Found!!! for table..." + i)
                 
         #Move & Delete files-----------------------------------------------------------------------------------------------
-        try:
+        '''try:
             modified_file='data/ie/' + dag_name_id + '/modified/' + file_type + '.txt'
             modified_destination_path = data_archival_path + file_type + '_' + timestamp_value + '_' + dag_name_id + '.txt'
             mv_blob(Variable.get('ie_dag_bucket'), modified_file, Variable.get('ie_bucket'),
                                     modified_destination_path)
             print("File moved from Modified to Archived Folder")
         except:
-            print("Unable to move files to Archive Folder")
+            print("Unable to move files to Archive Folder")'''
             
         bucket_name=Variable.get('ie_bucket')
         
-        '''def has_remaining_valid_files(bucket_name,data_retrieval_path):
+        def has_remaining_valid_files(bucket_name,data_retrieval_path):
             client = storage.Client()
             blobs = client.list_blobs(Variable.get('ie_bucket'), prefix=data_retrieval_path)
             for blob in blobs:
@@ -441,24 +460,27 @@ class IEDynamoIngestionOperator(BaseOperator):
                     continue
                 if blob_name.endswith('.csv'):
                     return True
-            return False'''
+            return False
   
-        #if not has_remaining_valid_files(Variable.get('ie_bucket'),self.data_retrieval_path):
-        try:
-            client = storage.Client()
-            blobs = client.list_blobs(Variable.get('ie_bucket'), prefix=data_retrieval_path)
-            for blob in blobs:
-                #skip the folder itself
-                if blob.name==data_retrieval_path.rstrip('/') + '/':
-                    continue
-                #if "error/" in blob.name:
-                    #continue
-                blob.delete()
-                print(f"Deleted: {blob.name}")
-            print(f"Deleted files from gcs retrieval path")
-        except:
-            print("Unable to delete files from retrieval path")
-        
+        if not has_remaining_valid_files(Variable.get('ie_bucket'),self.data_retrieval_path):
+            try:
+                client = storage.Client()
+                blobs = client.list_blobs(Variable.get('ie_bucket'), prefix=data_retrieval_path)
+                for blob in blobs:
+                    #skip the folder itself
+                    if blob.name==data_retrieval_path.rstrip('/') + '/':
+                        continue
+                    #if "error/" in blob.name:
+                        #continue
+                    blob.delete()
+                    print(f"Deleted: {blob.name}")
+                print(f"Deleted files from gcs retrieval path")
+            except:
+                print("Unable to delete files from retrieval path")
+        else:
+            self.log.info("Valid CSV Files remain - skipping folder deletion")
+            
+        #delete all modified folders in dag bucket
         gcs_bucket=Variable.get('ie_bucket')
         dag_bucket=Variable.get('ie_dag_bucket')
         
@@ -471,5 +493,4 @@ class IEDynamoIngestionOperator(BaseOperator):
         except subprocess.CalledProcessError as e:
             self.log.info(f"Error Deleting Files: {e}")
             raise
-    #else:
-        #self.log.info("Valid CSV Files remain - skipping folder deletion")
+        
