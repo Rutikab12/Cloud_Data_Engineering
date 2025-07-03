@@ -144,8 +144,8 @@ class IEDynamoIngestionOperator(BaseOperator):
             if not moved_files:
                 logging.info(f"No error CSV files found to archive under {data_retrieval_path}")
             else:
-                logging.info(f"Archived {len(moved_files)} error CSV files")    
-        
+                logging.info(f"Archived {len(moved_files)} error CSV files")
+  
 
         def get_file_from_bucket(file_type,file_period, folder_name, data_retrieval_path):
             postgres_hook = PostgresHook(postgres_conn_id="cloudsql_conn_ie", schema=Variable.get('ie_cloudsql_schema'))
@@ -244,9 +244,11 @@ class IEDynamoIngestionOperator(BaseOperator):
         client = bigquery.Client()
         dataset = Variable.get('ie_bq_staging_dataset')
         bq_project = Variable.get('ie_project_id')
+        #bigquery_table = bq_table_name + '_' + identifier
         bigquery_table = bq_table_name
+        #context['task_instance'].xcom_push(key='bigquery_table', value=secret)
         
-        logging.info("Deleting existing BQ Data from table: " + str(bigquery_table))
+        '''logging.info("Deleting existing BQ Data from table: " + str(bigquery_table))
 
         try:
             QUERY = "Delete from `" + bq_project + "." + dataset + "." + str(bigquery_table) + "` WHERE true"
@@ -255,7 +257,7 @@ class IEDynamoIngestionOperator(BaseOperator):
 
         except Exception:
             logging.info('Query failed or table does not exist')
-            # logging.info(Exception)
+            # logging.info(Exception)'''
         
         #CLEAN HEADERS---------------------------------------------------------------------------------------------------------
         
@@ -312,7 +314,7 @@ class IEDynamoIngestionOperator(BaseOperator):
         latest_key_name = self.latest_key_name
         
         file_directive = ''
-        pl_name = 'ie_dynamo_txt_file_load'
+        pl_name = 'ie_dynamo_txt_file_load_v1'
         file_directive += 'parse-as-csv :body \'\\t\' true\n'
         file_directive += 'drop :body\n'
         file_directive += 'set-column batch_id ' + '\'' + batch_id + '\'\n'
@@ -402,37 +404,15 @@ class IEDynamoIngestionOperator(BaseOperator):
                 continue
             else:
                 context['task_instance'].xcom_push(key=i, value=str(count))
+                #delete all modified folders in dag bucket
+                gcs_bucket=Variable.get('ie_bucket')
+                dag_bucket=Variable.get('ie_dag_bucket')
+                
+                dag_path_to_delete='data/ie/'+dag_name_id+'/'
+                       
+                delete_txt_files2=f"gsutil -m rm gs://{dag_bucket}/{dag_path_to_delete}*"
                 try:
-                    modified_file = 'data/ie/' + dag_name_id + '/modified/' + file_type + '.txt'
-                    modified_destination_path = data_archival_path + file_type + '_' + timestamp_value + '_' + dag_name_id + '.txt'
-                    mv_blob(Variable.get('ie_dag_bucket'), modified_file, Variable.get('ie_bucket'),
-                            modified_destination_path)
-                    print("File moved from Modified to Archived Folder")
-                except:
-                    print("Unable to move files to Archive Folder")
-
-                try:
-                    client = storage.Client()
-                    blobs = client.list_blobs(Variable.get('ie_bucket'), prefix=data_retrieval_path)
-                    for blob in blobs:
-                        if blob.name==data_retrieval_path.rstrip('/') + '/':
-                            continue
-                        #if "error/" in blob.name:
-                            #continue
-                        blob.delete()
-                        print(f"Deleted: {blob.name}")
-                    print(f"Deleted files from gcs retrieval path")
-                except:
-                    print("Unable to delete files from retrieval path")
-
-                gcs_bucket = Variable.get('ie_bucket')
-                dag_bucket = Variable.get('ie_dag_bucket')
-
-                dag_path_to_delete = 'data/ie/' + dag_name_id + '/'
-
-                delete_txt_files2 = f"gsutil -m rm gs://{dag_bucket}/{dag_path_to_delete}*"
-                try:
-                    subprocess.run(delete_txt_files2, shell=True, check=True)
+                    subprocess.run(delete_txt_files2,shell=True,check=True)
                     self.log.info("deleted files and folder from dag bucket")
                 except subprocess.CalledProcessError as e:
                     self.log.info(f"Error Deleting Files: {e}")
