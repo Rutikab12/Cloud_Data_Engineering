@@ -151,10 +151,18 @@ class IEDynamoIngestionOperator(BaseOperator):
                     print(str(blob))
                     print(str(blob.name))
                     tmp_filename = str(blob.name)#tmp_filename:Dynamo/Inbound/Landing/Transactions/dynamo_transaction_file_2024_09.txt
-
-                    if "error/" in tmp_filename:
-                        print(f"skipping file in error folder: {tmp_filename}")
+                    
+                    if (tmp_filename.endswith('/') or "error/" in tmp_filename.lower() or "_success" in tmp_filename.lower()):
+                        print(f"Skipping non-csv files: {tmp_filename}")
                         continue
+                    
+                    if not tmp_filename.lower().endswith('.csv'):
+                        print(f"Skipping non-csv files: {tmp_filename}")
+                        continue
+
+                    '''if "error/" in tmp_filename:
+                        print(f"skipping file in error folder: {tmp_filename}")
+                        continue'''
 
                     print("tmp_filename: " + tmp_filename)
                     if tmp_filename.lower() is not None:
@@ -164,9 +172,6 @@ class IEDynamoIngestionOperator(BaseOperator):
                         print('filename: ' + filename)
                         print('head: ' + head) #Dynamo/Inbound/Landing/Transactions
                         print('tail: ' + tail) #dynamo_transaction_file_2024_09.txt
-                        if 'csv' not in tail :
-                            print("passing the loop")
-                            continue
 
                         #data/ie/ie_dynamo_transaction_data_ingestion/dynamo_transaction_file_2024_09.txt
                         #folder_name is nothing but dag_name
@@ -178,19 +183,17 @@ class IEDynamoIngestionOperator(BaseOperator):
                                 destination_path)
 
                         logging.info(
-                            'File found for : ' + file_type + ' and for file_period: ' + file_period)
+                            'Valid File found for : ' + file_type + ' and for file_period: ' + file_period)
 
                         found_flag = True
+                        return found_flag, filename
 
-                        break
-
-                    print("filename :" + filename)
                 #print("Ref file name :" + reffile_to_find)
-                if filename is None:
+                if not found_flag:
                     raise AirflowFailException(
-                        "Error : file_type: " + file_type + " Not Found !! for file_period: " + file_period)
+                        "Error : No Valid CSV found for: " + file_type + " for file_period: " + file_period)
 
-                return found_flag, filename
+                
          
         #fetch global variables---------------------------------------------------------------------------------------------------------
         file_period = self.period
@@ -418,7 +421,6 @@ class IEDynamoIngestionOperator(BaseOperator):
                 raise AirflowFailException(" No Data Found!!! for table..." + i)
                 
         #Move & Delete files-----------------------------------------------------------------------------------------------
-        
         try:
             modified_file='data/ie/' + dag_name_id + '/modified/' + file_type + '.txt'
             modified_destination_path = data_archival_path + file_type + '_' + timestamp_value + '_' + dag_name_id + '.txt'
@@ -426,8 +428,22 @@ class IEDynamoIngestionOperator(BaseOperator):
                                     modified_destination_path)
             print("File moved from Modified to Archived Folder")
         except:
-            print("Unable to move files to Archive Folder") 
-       
+            print("Unable to move files to Archive Folder")
+            
+        bucket_name=Variable.get('ie_bucket')
+        
+        '''def has_remaining_valid_files(bucket_name,data_retrieval_path):
+            client = storage.Client()
+            blobs = client.list_blobs(Variable.get('ie_bucket'), prefix=data_retrieval_path)
+            for blob in blobs:
+                blob_name=blob.name.lower()
+                if blob_name.endswith('/') or 'error/' in blob_name:
+                    continue
+                if blob_name.endswith('.csv'):
+                    return True
+            return False'''
+  
+        #if not has_remaining_valid_files(Variable.get('ie_bucket'),self.data_retrieval_path):
         try:
             client = storage.Client()
             blobs = client.list_blobs(Variable.get('ie_bucket'), prefix=data_retrieval_path)
@@ -455,3 +471,5 @@ class IEDynamoIngestionOperator(BaseOperator):
         except subprocess.CalledProcessError as e:
             self.log.info(f"Error Deleting Files: {e}")
             raise
+    #else:
+        #self.log.info("Valid CSV Files remain - skipping folder deletion")
