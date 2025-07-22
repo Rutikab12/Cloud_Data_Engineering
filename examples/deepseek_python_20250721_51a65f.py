@@ -66,9 +66,15 @@ def copy_payees_to_bigquery(**kwargs):
         # Convert rows to list of dictionaries
         rows_to_insert = [dict(zip(column_names, row)) for row in rows]
         
-        errors = bq_client.insert_rows_json(bq_table_ref, rows_to_insert)
+        job_config = bigquery.LoadJobConfig(schema=schema)
+        job = bq_client.load_table_from_dataframe(
+            pd.DataFrame(rows_to_insert), 
+            bq_table_ref, 
+            job_config=job_config
+        )
+        job.result()
         
-        if errors:
+        if job:
             print(f"Encountered errors while inserting rows: {errors}")
             raise Exception("BigQuery insert errors occurred")
         else:
