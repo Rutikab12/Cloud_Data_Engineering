@@ -1,0 +1,100 @@
+📌 Egen.ai Interview – Your Question List (GCP Data Engineer, India)
+
+  General Tech Stack
+  
+  - Different tools you used for Python
+  
+  - Any experience with Docker containers, AWS, etc.
+  
+  - GCS File Processing
+  
+  - Started with file fetching from GCS bucket.
+  
+  Python Questions
+  
+  - Deep copy vs. shallow copy
+  
+  - __call__ method
+  
+  - Generator
+  
+  - Decorator
+  
+  - Strings
+  
+  - __init__ method
+  
+  - How to merge two strings
+  
+  - Different types of Python functions (e.g., lambda(), len(), sorted()) — asked to write all.
+
+Pandas / NumPy
+
+- What is Pandas, NumPy?
+
+- What is DataFrame vs Series? Which one do you use daily?
+
+Read CSV with Pandas and transformations:
+
+  Read CSV
+  
+  Fill null or empty values
+  
+  Filter (if needed)
+  
+  Standardize gender column
+  
+  Drop duplicates
+  
+  Store to BigQuery
+
+LeetCode Problem
+
+  Two Sum (O(n²) and O(n) solutions).
+
+BigQuery Concepts
+
+  What is a dataset in BigQuery?
+  
+  RANK, DENSE_RANK, ROW_NUMBER — write example and code.
+  
+  Partitions, clustering in BigQuery.
+  
+  Can we do clustering on already existing BQ tables? (syntax for partitioning and clustering)
+  
+  CREATE TABLE statement in BQ, data manipulation in BQ.
+
+Dataflow
+
+  How to initiate pipeline in Dataflow.
+  
+  What is PCollection, PTransform, ParDo (write examples).
+  
+  How to run a Dataflow pipeline.
+
+Airflow
+
+  What is Airflow and DAG? How to define DAG (write code).
+  
+  What is a task and how to set up dependencies.
+  
+  Which operator is used to call Dataflow job in Airflow.
+
+Use Case
+
+  Data in Oracle DB → read it (e.g., Dataflow) → process → store to BigQuery in incremental manner:
+
+Append new records
+
+    Update existing records if updated
+    (You answered using MERGE in BQ; they expected CDC concepts)
+
+Debugging
+
+How you debug Dataflow pipelines.
+
+How you debug production-level pipelines.
+
+Project
+
+Short explanation of your current project.
