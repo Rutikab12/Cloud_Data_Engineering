@@ -1,0 +1,57 @@
+Psycometric test- 30min test
+-----------------------------------------------------------------------------------------
+karat platform live coding round:
+2- sql scenario based questions
+(left join question and a aggregate + group by question)
+students, departnents,teachers table
+1- python pandas scenario based question
+(read csv, check product count, after the product is sold check the count and raise a flag if it needed to be restock)
+(restock can happen after 90 days only add this constraint also)
+(free to google everything at screen share)
+
+-----------------------------------------------------------------------------------------
+Managerial Round (face to face )
+
+--explain yourself, projects you have worked on. technologies you have used in it.
+(five stages ingestion,transformation,recon,calculation,payment)
+--draw flow of your project.
+--you told, you deal with 400k records , what if 200k records got ingested in bq and other failed, how will you handle this scenario ?
+--let's say that 400k records got increased to 4M records in a day, how will you scale your system, I talked about pub/sub,gcs storage notification,cloud function and airflow to bq ingestion
+--what type of checks do you apply while ingesting the data to bq, using the method you have stated?
+--can't we do ingestion directly through gcs to bq using cloud function only.?
+  why we need airflow and data fusion pl in between?
+  what is cloud function?
+  what is pub/sub? why you used only push notification?
+  why there is need of pub/sub and cloud function also to ingest the data to bq?
+--why can't you do transformation and ingestion at same level , why different stages ?
+  you said, you used encryption also for PII fields, what type of encryption you used ?
+  for both data and files?
+--what is compute engine, service accounts related to it
+--have your used compute engine in any services you mentioned
+--what is parDo and PTransform in dataflow
+--what is window functions, define some window functions
+--what is rank,row_number,dense_rank
+--if there are duplicates in a table, what rank function will you use to assign the rank to both
+--you have list with some names , how will you give count of each names in python
+--leetcode sql question on windowing
+--what if dataflow operator is not running in production, you tried but it is not working in airflow, how will you submit/run dataflow script on production without using airflow?
+--what is the fabric behind dataflow ? meaning how it handles the huge data and is still fast ? (told about combine function in beam)
+--what is return and yeild , what is deafault data types of value they returns?
+--what is SLA in your projects for prod issues?
+--issues you faced in prod for your current project, how you mitigate it?
+--why two different ingestion process manual and automated?
+--do you know compute engine is a worker or not?
+--how will you automate the process where you clients are verifying data manually at recon stage ?
+--what is the total count of dags in your projects, how dag_concurrency paramter is set, let's say 100 dags runs at a time, how to handle this?
+--what configuration do you used for airflow eg: airflow version, packages, etc?
+--what is the ci/cd tool you used? have you used jenkins,terraform?
+--have you done coding in python for your project?
+--how will you scale dataflow workers for heavy load like 4M records?
+--what are the flaws and how will you improve in your project architecture, if given oppourtunity?
+--do you have submitted dataflow jobs from local system to gcloud?
+--have you implemented retry mechanism for your datafusion/dataflow jobs for production level?
+--let's say one day, your data in current comm calculation process, comes up with 3-4M records, do you think your existing system will handle it ?
+if not, what changes will you do ?
+(told them in terms of data fusion/dataflow, I will increase workers , memory)
+followed up was, what is worker ? what is node ? how will you test this in your dev nev? what configs will you choose?
+--how did you handle duplicates data in your projects right now?
