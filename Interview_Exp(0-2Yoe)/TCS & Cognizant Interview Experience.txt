@@ -1,0 +1,60 @@
+Cognizant Interview Questions (Duration - 30min)
+
+--introduce yourself and technologies you have worked on
+--what is bigquery and have you worked on it ?
+--let's say a query is taking lot of time to run, how will you identify possible reasons and optimize it?
+--do you know window functions like rank,dense_rank and row_number?
+--give me query to take 2nd highest salary in department
+--what is difference between dataproc and dataflow?
+--How do deploy pipelines to production env in your current project?
+--Suppose multiple developers are working on same code? how will you handle this in git.
+--what is composer in gcp, why is it used? give me some names of airflow operators you have used?
+--what is the basic idea behind ETL ? I told him source , destination. Suppose you have a source with 10GB data, how will you load it in Bigquery.
+--explain any usecase where you have ingested data in your project? told him about automated data ingestion and manual ingestion using datafusion and dataflow.
+--Can you directly load data from a file to BQ table? What is GCStoBigQuery operator in airflow?
+--short answer : explain your project
+--what is your notice period? why are you switching?
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+TCS Interview Questions (Duration - 25min)
+
+--introduce yourself and projects you have worked on.
+--have you optimized any bigquery query
+--what are some of the reasons for time consuming bq jobs
+--suppose a query with 3000 lines of code, you have to optimize this query how will you deal with it? optimize and all.
+--a table as follows:
+Table_A		Table_B
+NULL		1
+1			1
+1			2
+1			NULL
+NULL
+NULL
+Give me number of records in left,right and inner join.
+justify the outputs you have stated.
+
+--perform left join and give one example
+select a.*,b.* from table_a as a
+left join table_b as b
+on a.id=b.id;
+
+--find out below things from emp and dept table
+-3rd highest from Hyderabad
+-4th from Pune location
+-employee and department table
+
+with cte as(
+select e.emp_name,e.salary,d.dept_name,d.dept_location from employee as e
+left join department as d
+on e.emp_id=d.emp_id),
+ranked_emp as(
+select emp_name,salary,dept_name,dept_location, rank() over(partition by dept_location order by salary desc) as rnk
+from cte)
+
+select emp_name,salary,dept_location from ranked_emp
+where rnk in (3,4) and dept_location in ('Hyderbad','Pune');
+
+--followup questions on above one:
+ -why you used left join and not inner join in first cte?
+ -why you used rank and not dense_rank
+ -last query needs corrected, please correct it.

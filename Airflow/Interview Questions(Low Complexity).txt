@@ -1,4 +1,4 @@
-Interview Questions on Airflow for 2.5 Years of experience 
+Interview Questions on Airflow for 3.5 Years of experience 
 [GCP Data Engineer, Data Engineer]
 Complexity - Low
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -124,7 +124,8 @@ Complexity - Low
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 1. What happends when a task fails, and how do you handle retries?
 	Airflow handles this with retries, retry_delay and email_notifications,trigger rules
-	If no of retries exhausted, dag marked as failed.
+	If no. of retries exhausted, dag marked as failed.
+	We can also use on_failure_callback and on_success_callback respectively if tasks fails or succeeded.
 	
 	- Trigger rules
 		Modify how downstream tasks behave after tasks fails.
@@ -135,6 +136,11 @@ Complexity - Low
 	example :
 	from airflow import DAG
 	from datetime import timedelta,datetime
+	
+	# Define Success Callback: Log Success Message
+	def task_success_alert(context):
+		print(f"✅ SUCCESS: Task {context['task_instance'].task_id} completed successfully!")
+	
 	with DAG(
 		dag_id="failure handling",
 		schedule_interval='@daily',
@@ -156,6 +162,15 @@ Complexity - Low
 		dependent_task=BashOperator(
 			task_id='2',
 			bash_command='echo "dependent task executed"',
+		)
+		
+		# Task to Run BigQuery Query
+		bigquery_task = PythonOperator(
+			task_id='run_bigquery_query',
+			python_callable=run_bigquery_query,
+			on_failure_callback=task_failure_alert,  # Send Slack Alert if Fails
+			on_success_callback=task_success_alert,  # Log Success if Completes
+			dag=dag
 		)
 		
 		failing_task >> dependent_task
@@ -230,4 +245,288 @@ Complexity - Low
 		with open('/tmp/data.json', 'w') as f:
         f.write(response.text)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Low Complexity Questions
 
+	Introduction to Airflow
+	What is Apache Airflow?
+	What are the key components of Airflow?
+
+	DAG Basics
+	What is a DAG in Airflow?
+	How do you define a DAG in Airflow?
+
+	Operators
+	What are operators in Airflow?
+	What is the difference between BashOperator and PythonOperator?
+
+	Task Dependencies
+	How do you define task dependencies in Airflow?
+	What is the difference between >> and << operators in Airflow?
+
+	Airflow Execution
+	What happens when you trigger a DAG manually in Airflow?
+	What is the purpose of the start_date parameter in a DAG?
+
+	Airflow Scheduler & Executor
+	What is the role of the Airflow Scheduler?
+	What is the SequentialExecutor, and when should you use it?
+
+	Airflow UI & Monitoring
+	What are the key sections in the Airflow UI?
+	How can you check logs for a failed task in Airflow?
+
+	GCP Integration
+	How does Airflow integrate with Google Cloud?
+	What is Cloud Composer, and how is it related to Airflow?
+	
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Medium Complexity Questions
+
+	DAG Scheduling & Execution
+	What is the difference between schedule_interval and execution_date?
+	What happens if you set catchup = True in an Airflow DAG?
+
+	Airflow Executors
+	What are different types of Airflow Executors?
+	When should you use CeleryExecutor vs KubernetesExecutor?
+
+	Airflow Sensors
+	What is a sensor in Airflow?
+	How does a GoogleCloudStorageSensor work?
+
+	XComs in Airflow
+	What is XCom in Airflow?
+	How do you push and pull data using XComs in PythonOperator?
+
+	Dynamic DAGs
+	How do you create dynamic DAGs in Airflow?
+	What are the best practices when working with dynamic DAGs?
+
+	Error Handling & Retries
+	How do you configure retries for a task in Airflow?
+	What is the difference between on_failure_callback and on_success_callback?
+
+	Airflow Variables & Connections
+	How do you define and use Airflow variables?
+	What is an Airflow Connection, and how is it stored?
+
+	Airflow with BigQuery & Dataflow
+	How do you use Airflow to trigger a BigQuery job?
+	How can Airflow trigger a Dataflow pipeline?
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	
+High Complexity Questions
+
+	DAG Optimization & Best Practices
+	How can you optimize DAG execution for high performance?
+	What are best practices for managing a large number of DAGs?
+	
+	Parallelism & Task Queues
+	What is the difference between parallelism and dag_concurrency?
+	How do you distribute tasks across multiple workers in Airflow?
+	
+	Custom Operators & Plugins
+	How do you create a custom Airflow Operator?
+	What are Airflow plugins, and when should you use them?
+	
+	Airflow Logging & Debugging
+	How can you configure custom logging in Airflow?
+	How do you troubleshoot Airflow task failures?
+	
+	Security & Authentication
+	How do you secure an Airflow environment?
+	How do you set up role-based access control (RBAC) in Airflow?
+	
+	Kubernetes & Airflow
+	How do you deploy Airflow on Kubernetes?
+	What are the advantages of using KubernetesPodOperator?
+	
+	Cloud Composer Advanced Use Cases
+	How does Airflow handle dependency management in Cloud Composer?
+	What are the differences between Cloud Composer 1 and Cloud Composer 2?
+-------------------------------------------------------------------------------
+Scenario-Based Questions
+
+Low Complexity Scenario:
+You have a simple DAG that extracts data from an API and writes it to BigQuery. How would you implement this using Airflow?
+
+Medium Complexity Scenario:
+You have a DAG that runs every hour, but some tasks are failing intermittently. How would you troubleshoot and fix this?
+
+High Complexity Scenario:
+You are designing an Airflow pipeline that ingests terabytes of data daily from GCS to BigQuery. How would you optimize performance and cost efficiency?	
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Here are the Top 50 Apache Airflow Interview Questions for 2-3 years of experience, categorized into Low, Medium, and High complexity.
+
+📌 Low Complexity (Basic Questions)
+What is Apache Airflow, and why is it used?
+What are the main components of Airflow?
+What is a DAG in Airflow?
+How does Airflow schedule tasks?
+What is the role of the Airflow Scheduler?
+What is the difference between @daily, @hourly, and @once schedule intervals?
+What is the role of the Airflow Metadata Database?
+How do you define task dependencies in Airflow?
+What are the different types of Airflow Operators?
+What is the difference between an Operator and a Sensor in Airflow?
+What is a Task Instance in Airflow?
+
+How do you manually trigger a DAG run in Airflow?
+What is the difference between >> and << operators in Airflow?
+What happens if an Airflow task fails?
+What are the different types of Executors in Airflow?
+What is SequentialExecutor, and when would you use it?
+How do you view DAG runs and task logs in Airflow?
+What is airflow.cfg, and why is it important?
+How do you pass data between tasks in Airflow?
+What is the purpose of start_date in an Airflow DAG?
+--------------------------------------------------------------------------------------------------------------------------------------
+
+📌 Medium Complexity (Intermediate Questions)
+How does the Airflow retry mechanism work?
+What is an XCom in Airflow? How do you use it?
+How does Airflow handle dependencies between tasks?
+What is a Dynamic DAG, and how do you create one?
+What is the role of execution_date in Airflow?
+What is the difference between BashOperator and PythonOperator?
+How does Airflow integrate with Google Cloud (GCP)?
+What is the BigQueryInsertJobOperator, and how is it used?
+What is an Airflow Hook, and how does it work?
+What is an Airflow Sensor? Provide an example.
+How does Airflow handle concurrency and parallel execution?
+
+What are Pools in Airflow, and how do they work?
+What is the difference between LocalExecutor, CeleryExecutor, and KubernetesExecutor?
+How do you store Airflow logs in Google Cloud Storage (GCS)?
+What are DAG Runs and Task Instances in Airflow?
+What is the purpose of airflow dags backfill command?
+How do you deploy a DAG to Cloud Composer?
+What is the role of Environment Variables in Airflow?
+How does Airflow handle task retries and failures?
+What are the security best practices for running Airflow in production?
+-------------------------------------------------------------------------------------------------------------------------------------
+
+📌 High Complexity (Advanced/Scenario-Based Questions)
+How do you dynamically generate tasks in a DAG using Python?
+How do you create a custom Airflow Operator?
+How do you run multiple Airflow DAGs in parallel while ensuring task dependencies are met?
+How does Airflow handle task execution delays and timeouts?
+Explain the difference between TriggerDagRunOperator and ExternalTaskSensor.
+How does Airflow integrate with Apache Kafka?
+How do you monitor and optimize DAG performance in Airflow?
+How do you set up Airflow in a distributed environment using Celery?
+What are the challenges in running Airflow at scale, and how do you solve them?
+How do you handle dynamic configuration and secrets management in Airflow?
+-------------------------------------------------------------------------------------------------------------------------------------
+🔥 Different Types of Trigger Rules
+Trigger Rule				Description																Use Case
+all_success 				(default)Runs if all upstream tasks succeed								Standard case, ensures dependencies are met
+all_failed					Runs if all upstream tasks fail											Useful for triggering recovery steps
+all_done					Runs if all upstream tasks are finished (success, failed, or skipped)	Runs regardless of success or failure
+one_failed					Runs if at least one upstream task fails								Used for handling partial failures
+one_success					Runs if at least one upstream task succeeds								Useful when multiple paths lead to a task
+none_failed					Runs if no upstream task has failed (success or skipped are okay)		Prevents execution if any upstream task fails
+none_failed_or_skipped		Runs if no upstream task failed or was skipped							More restrictive than none_failed
+none_skipped				Runs if no upstream task was skipped									Ensures all dependencies were considered
+always						Runs no matter what														Used for cleanup tasks
+
+----------------------------------------------------------------------------------------------------------------------------------
+✅ Airflow Interview Questions (For 3 Years Experience)
+🟢 Low Complexity (Basics + Day-to-Day Use)
+What is Apache Airflow? Why is it used in data pipelines?
+
+What are DAGs in Airflow? How do you define one?
+
+Explain the role of start_date and schedule_interval in DAGs.
+
+How do you prevent a DAG from running for past dates when deployed?
+
+Hint: catchup = False
+
+What are Operators? List a few commonly used ones.
+
+How is task dependency set between tasks in Airflow?
+
+How can you manually trigger a DAG run in Airflow?
+
+Where is metadata stored in Airflow and why is it important?
+
+What is the use of the provide_context=True flag in PythonOperator?
+
+How do you access XComs in a downstream task?
+
+🟡 Medium Complexity (GCP + Real-World Scenarios)
+How does Airflow Composer integrate with GCP services like BigQuery and GCS?
+
+How do you handle retries and failures in Airflow?
+
+retries, retry_delay, on_failure_callback
+
+Explain what happens if a task is stuck and doesn't complete.
+
+Use of execution_timeout, sla, and deadlock detection
+
+How do you schedule a DAG to run only once?
+
+Hint: schedule_interval=None
+
+What are Sensors? Explain with an example.
+
+GCS sensor, File sensor
+
+What is the difference between depends_on_past=True and wait_for_downstream=True?
+
+How do you use a GCS to BigQuery operator in a DAG?
+
+What is the use of Task Groups in Airflow 2.x?
+
+How do you pass dynamic values between tasks in a DAG run?
+
+XCom + render_template_as_native_obj=True
+
+What’s the best practice to version-control Airflow DAGs in a team environment?
+
+🔴 High Complexity (Design + Edge Cases + Optimization)
+Design an Airflow DAG for a streaming data pipeline that writes daily batches from Pub/Sub to BigQuery.
+
+How would you create a dynamic DAG that adjusts based on input file names in GCS?
+
+Explain how you would run a backfill for a DAG but skip some tasks.
+
+How do you ensure idempotency and data quality in Airflow-managed pipelines?
+
+What are the different Executor types in Airflow? Which one is used in Cloud Composer?
+
+SequentialExecutor, LocalExecutor, CeleryExecutor, KubernetesExecutor
+
+How do you handle secrets and credentials in Airflow on GCP?
+
+Secret Manager, GCS JSON key, Airflow Variables
+
+What are some Airflow 2.x improvements over Airflow 1.x?
+
+REST API, TaskGroup, Scheduler performance, UI updates
+
+How do you set task-level and DAG-level SLAs and monitor them?
+
+What happens if the Airflow Scheduler crashes during DAG execution?
+
+Explain Airflow's dependency resolution and DAG parsing process.
+
+✨ BONUS: Scenario-Based Questions
+A DAG is scheduled to run daily, but it's stuck. What steps will you take to debug it?
+
+You added a new task to a DAG. Why does it not appear in past DAG runs?
+
+Your task depends on an external system (like API or external table). How will you make sure Airflow waits until it's available?
+
+📌 Airflow GCP-Specific Topics (Must Know for Composer Users)
+Using GCS buckets for DAG storage
+
+Managing Python dependencies using requirements.txt in Composer
+
+Logging & Monitoring DAGs in Composer (Cloud Logging integration)
+
+Using GCP-specific operators: GCSToBigQueryOperator, DataflowTemplateOperator, BigQueryInsertJobOperator
+
+IAM roles required for Composer to interact with other GCP services

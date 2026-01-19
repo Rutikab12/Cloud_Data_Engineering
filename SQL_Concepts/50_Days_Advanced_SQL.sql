@@ -174,27 +174,38 @@ join TVProgram t
 on c.content_id=t.content_id
 where date_format(program_date, '%Y%m') = '202006' and kids_content='Y' and content_type='Movies'
 -------------------------------------------------------------------------------------------------------------------------------------------
+--Leetcode Problems: 1821
+--Find Customers With Positive Revenue 2021 Year
 
-
-
-
+select distinct customer_id from Customers_1 where year=2021 and revenue>0;
 -------------------------------------------------------------------------------------------------------------------------------------------
+--Leetcode Problems: 183
+--Customers who never order
 
-
-
-
+--select name as Customers from Customers where id not in(select customerId from Orders);
+select name as Customers from Customers c
+left join Orders o
+on c.id=o.customerId
+where o.id is null;
 -------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
+--Leetcode Problems: 1873
+--Calculate Special Bonus
+with cte as(
+    select *, ifnull(case when employee_id%2=1 and name not like 'M%' then salary end,0) as bonus from employees
+)
+select employee_id,bonus from cte order by employee_id;
 -------------------------------------------------------------------------------------------------------------------------------------------
+--Leetcode Problems: 1398
+--Customer who bought product A and B but not product C
 
-
-
-
+select c.customer_id, c.customer_name from customers c
+left join products p
+on c.customer_id=p.customer_id
+group by sum(product_name = 'A') > 0 and sum(product_name = 'B') > 0 and sum(product_name = 'B') > 0
+order by customer_id;
 -------------------------------------------------------------------------------------------------------------------------------------------
-
+--Leetcode Problems: 1112
+--Highest grade for each student
 
 
 
