@@ -23,6 +23,78 @@
 --Business says report numbers wrong. How do you validate?
 --How do you gather business requirements?
 --How do you ensure data quality?
+--------------------------------------------------------------------------------------------------------------------
+(Client Round - HSBC)
+--introduce yourself and explain projects you worked on)
+--have you worked on sql and python ? Yes. Copying some questions let us know the answer.
+--what is mutable and immutable objects in python ?
+--have you worked on sorted function ? let me output of below code.
+def myfunc(n):
+  return abs(10-n)
+
+a = (5, 3, 1, 11, 2, 12, 17)
+x = sorted(a, key=myfunc)
+print(x)
+
+--questions-2 on python, tell me output of each list
+def add_to_list(value, my_list=[]):
+    my_list.append(value)
+    return my_list
+list1 = add_to_list(1)
+list2 = add_to_list(2)
+list3 = add_to_list(3, [])
+print(list1)
+print(list2)
+print(list3)
+
+--question-3 on python,tell me output of each list
+def flatten(nested_list):
+    flat_list = []
+    for item in nested_list:
+        if isinstance(item, list):
+            flat_list.extend(flatten(item))
+        else:
+            flat_list.append(item)
+    return flat_list
+
+print(flatten([1, [2, [3, 4], 5], 6]))
+
+flat_list=[1,2,3,4,5,6]
+
+--you said you worked on airflow ? Yes.
+--then what is start_date, catch_up and schedule_interval ?
+--what if start_date is in future ? will it fail the dag ?
+--what is xcom,param and variables in airflow ?
+--how did you receive requirements ? explained flow of project from both end data and business requirements.
+--You have used dataflow for ingestion using cloud storage notifications ? Any other way to do it ?
+	--why do you used dataflow only if the files are coming thrice in a day ? you could have gone for batch process ?
+--heavily cross questions on project things I explained to the panel ? mostly architectural,infra level thinking.
+--what are the triggers and sensors in airflow ? can we use in airflow for file ingestion you explained earlier ?
+--what is diff between bigquery and bigtable ?
+--have you ever worked on anyother services than dataflow and data fusion ?
+--Tell me output of below query ?
+Customers Table:
+Customer ID	Name	City
+1	John Levi	New York
+2	Jane Tye	Los Angeles
+3	Mike Foley	Chicago
+4	Alice White	New York
+ 
+
+Orders Table:
+Order ID	Customer ID	Order Date	Order Total
+100	1	2023-07-01	100.00
+101	2	2023-06-15	50.00
+102	3	2023-07-05	150.00
+103	1	2023-07-07	75.00
+104	4	2023-07-02	200.00
+105	1	2023-07-01	180.00
+106	2	2023-06-18	150.00
+107	4	2024-06-05	350.00
+108	5	2023-07-07	275.00
+109	3	2023-07-02	300.00
+
+Find the total number of orders placed by each customer, excluding orders placed in June.
 ******************************************************************************************************
 ----------------------------------------------------------------------------------------------------------------------------
 Datametica Round-1
@@ -46,7 +118,7 @@ where salary > 1000
 group by 1,3,4
 order by 1,3;
 
---what is primary and unique key ?
+--what is primary and unique key 
 
 --give me output of rank and dense_rank
 dept_id | rank  | dense_rank
@@ -63,7 +135,7 @@ dept_id | rank  | dense_rank
 id , name, salary
 100  Anuradha 50k 1
 100  Anuradha 50k 2
-
+(no timestamp/date column in table)
 select id,name,salary from(
 select id,name,salary , row_number() over(order by salary) as rn
 from emp)
