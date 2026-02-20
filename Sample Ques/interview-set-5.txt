@@ -1,0 +1,67 @@
+def get_appearance(lst):
+    count_dict = {}
+    for element in lst:
+        if element in count_dict:
+            count_dict[element] += 1
+        else:
+            count_dict[element] = 1
+    
+    for k, v in count_dict.items():
+        print(f"{k} appears {v} times")
+
+CREATE OR REPLACE EXTERNAL TABLE hr_data.external_employees
+OPTIONS (
+  format = 'CSV',
+  uris = ['gs://my_bucket/hr/employee_data.csv'],
+  autodetect = TRUE,
+  skip_leading_rows = 1
+);
+
+
+PYSPARK_JOB_1 = {
+    "reference": {"project_id": PROJECT_ID},
+    "placement": {"cluster_name": CLUSTER_NAME},
+    "pyspark_job": {"main_python_file_uri": process_data.py,
+                    "python_file_uris": [],
+                    },
+}
+default_args = {
+    "owner": "SAURABH ZAPARDE",
+    "start_date": days_ago(1),
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
+
+with DAG(
+    dag_id="gcs_to_bigquery_pyspark_dag",
+    schedule_interval=None,
+    default_args=default_args,
+    catchup=False,
+    description="Create the Bronze_Layer Tables",
+    tags=["pyspark", "dataproc", "Bigquery"],
+) as dag:
+    
+    start_cluster = DataprocStartClusterOperator(
+        task_id="start_cluster",
+        project_id=PROJECT_ID,
+        region=REGION,
+        cluster_name=CLUSTER_NAME,
+    )
+
+    pyspark_task_1 = DataprocSubmitJobOperator(
+        task_id="pyspark_task_1", 
+        job=PYSPARK_JOB_1, 
+        region=REGION, 
+        project_id=PROJECT_ID
+    )
+    stop_cluster = DataprocStopClusterOperator(
+        task_id="stop_cluster",
+        project_id=PROJECT_ID,
+        region=REGION,
+        cluster_name=CLUSTER_NAME,
+    )
+
+start_cluster >> pyspark_task_1 >> stop_cluster

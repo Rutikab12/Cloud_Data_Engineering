@@ -1,0 +1,84 @@
+Interview Q&A with Explanations
+===============================
+
+ETL / Data Engineering Interview Q&A (1–11)
+------------------------------------------
+
+1. Suppose you have a 5GB dataset and need to aggregate data quickly. How would you structure your table?
+
+I'd design a fact table optimized for performance — partitioned by date (if applicable) and clustered by high-filter columns like store_id or product_id. This helps BigQuery scan less data and perform faster aggregations.
+
+2. How would you structure your table (follow-up to Q1)?
+
+Example schema:
+
+CREATE TABLE sales_fact (
+  transaction_id   STRING,
+  transaction_date DATE,
+  store_id         STRING,
+  product_id       STRING,
+  quantity         INT64,
+  unit_price       NUMERIC,
+  revenue          NUMERIC
+)
+PARTITION BY DATE(transaction_date)
+CLUSTER BY store_id, product_id;
+
+This setup supports fast filtering and grouping operations.
+
+3. Suppose your BigQuery is taking a long time — what steps would you take to troubleshoot?
+
+I'd start by reviewing the Query Execution Plan to identify bottlenecks. Then I’d check for missing partitions, clustering issues, or inefficient joins. I’d also optimize queries by avoiding SELECT *, reducing scanned data, and using materialized views or summary tables if needed.
+
+4. How would you ensure data quality in an ETL pipeline?
+
+By implementing validation at each stage: schema checks, null checks, data type validation, referential integrity, and anomaly detection. Tools like dbt tests or Great Expectations can automate this. I also track pipeline runs via audit logs and alerts.
+
+5. If your ETL pipeline fails and data is incomplete in BigQuery, how do you recover and re-run it?
+
+I’d identify the failed batch or partition using logs, clean up partial data, and re-run the pipeline only for that range. I design pipelines to be idempotent, so reruns don’t cause duplication. Airflow or similar orchestrators help manage retries.
+
+6. If you need to update a schema (e.g., add a column) to a table with data already present, how do you do that without downtime?
+
+If the column is nullable or has a default, I’d use ALTER TABLE in BigQuery to add it directly — no downtime. Existing queries continue to work, and new ones can use the added column right away.
+
+7. If the new column has NULLs for existing data, how do you handle it?
+
+I’d run a backfill using UPDATE or MERGE to populate the column based on default or derived logic. In the meantime, I’d use IFNULL() or COALESCE() in queries to handle NULLs gracefully.
+
+8. How much experience do you have in Python?
+I have 2.5 years of experience using Python for ETL pipelines, data validation, automation, and integration with tools like Airflow, BigQuery, and GCS. I'm comfortable with pandas and writing modular, production-ready code.
+
+9. Which modules do you use in Python?
+
+I mostly use pandas for data manipulation, and pyspark for large-scale data processing. Other modules include datetime, json, os, requests, and sqlalchemy.
+
+10. How do you handle a large CSV file in pandas?
+
+I use pd.read_csv() with chunksize to read and process large files in batches. This prevents memory overload. Each chunk can be filtered/transformed and saved or pushed downstream in a streaming fashion.
+
+Example:
+for chunk in pd.read_csv('large_file.csv', chunksize=100000):
+    process(chunk)
+
+11. SQL: You have a table with team results from cricket matches. How do you get the count of wins/losses per team?
+
+Use GROUP BY on team and result:
+
+SELECT
+  Team_Name,
+  Result,
+  COUNT(*) AS match_count
+FROM
+  matches
+GROUP BY
+  Team_Name,
+  Result;
+
+Output Example:
+Team_Name | Result | match_count
+----------|--------|-------------
+A         | Win    | 2
+A         | Loss   | 1
+B         | Win    | 1
+B         | Loss   | 2

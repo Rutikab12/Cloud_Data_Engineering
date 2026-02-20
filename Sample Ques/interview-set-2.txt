@@ -1,0 +1,127 @@
+Q1: Write a query to get monthly total transactions and total amount for approved transactions, grouped by country.
+Explanation: We use DATE_TRUNC to get the month part from transaction date, filter only approved transactions, group by month and country, and use COUNT and SUM for aggregations.
+Corrected SQL:
+SELECT 
+  DATE_TRUNC('month', trans_date) AS month,
+  country,
+  COUNT(*) AS total_transactions,
+  SUM(amount) AS total_amount
+FROM transactions
+WHERE state = 'approved'
+GROUP BY month, country
+ORDER BY month, country;
+
+Q2: Write a query to get top 5 products with highest average sales in the last 1 month.
+Explanation: We filter by date using DATE_SUB, then group by product_id, compute average and order descending to get top 5.
+Corrected SQL:
+SELECT 
+  product_id,
+  AVG(sales_amount) AS avg_sales
+FROM sales
+WHERE sale_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH)
+GROUP BY product_id
+ORDER BY avg_sales DESC
+LIMIT 5;
+
+Q3: Write a BigQuery DDL to create an external table from a GCS CSV file.
+Explanation: CREATE EXTERNAL TABLE in BigQuery allows querying files directly from GCS using specified options.
+Corrected SQL:
+CREATE EXTERNAL TABLE dataset_id.table_name
+OPTIONS (
+  format = 'CSV',
+  uris = ['gs://bucket_name/path'],
+  skip_leading_rows = 1,
+  autodetect = TRUE
+);
+
+Python Section
+--------------
+
+Q4: What is the difference between a dictionary and a set in Python?
+Explanation: Dictionary stores key-value pairs, while set is an unordered collection of unique elements.
+Corrected Code:
+dict_data = {'one': 1, 'two': 2}
+set_data = {'one', 'two'}
+
+Q5: Fix this dictionary iteration code:
+Corrected:
+for k, v in dict_data.items():
+    print(k, v)
+
+Pandas Section
+--------------
+
+Q6: Sort a DataFrame by its first column.
+Explanation: Access the first column by df.columns[0], then sort using sort_values.
+Corrected Code:
+sorted_df = df.sort_values(by=df.columns[0])
+
+Q7: Convert a DataFrame to a dictionary.
+Explanation: Use the to_dict() method to convert to dictionary.
+Corrected Code:
+dict_data = df.to_dict()
+
+PySpark Section
+---------------
+
+Q8: Create a Spark session and read CSV.
+Corrected Code:
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName("MyApp").getOrCreate()
+df = spark.read.csv("path_to_my_file.csv", header=True)
+df.show()
+
+Q9: Group by two columns and count in PySpark.
+Corrected Code:
+df.groupBy(['col1', 'col2']).count().show()
+
+Q10: Fix this selection syntax:
+Corrected:
+df_2 = df.select('col1', 'col2')
+Or:
+df_2 = df[['col1', 'col2']]
+
+Apache Airflow Section
+----------------------
+
+Q11: Define a DAG to extract from MySQL and load to BigQuery via GCS.
+Explanation: DAG uses MySQLToGCSOperator and GCSToBigQueryOperator to perform ETL. Common issues were missing commas and incorrect function names.
+Corrected DAG:
+from airflow import DAG
+from airflow.utils.dates import days_ago
+from airflow.providers.google.cloud.operators.mysql_to_gcs import MySQLToGCSOperator
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
+
+default_args = {
+    'owner': 'Saurabh Zaparde',
+    'start_date': days_ago(1),
+    'retries': 1,
+}
+
+with DAG(
+    dag_id='mysql_db_to_gcs_bq',
+    default_args=default_args,
+    schedule_interval='@daily',
+    tags=['gcp', 'mysql', 'bq']
+) as dag:
+
+    extract_sales = MySQLToGCSOperator(
+        task_id='extract_from_mysql',
+        mysql_conn_id='mysql_default',
+        query='SELECT * FROM sales;',
+        bucket='my_gcs_bucket',
+        filename='sales/sales.csv',
+        export_format='csv',
+    )
+
+    load_to_bq = GCSToBigQueryOperator(
+        task_id='load_sales_to_bq',
+        bucket='my_gcs_bucket',
+        source_objects=['sales/sales.csv'],
+        destination_project_dataset_table='project.dataset.sales',
+        source_format='CSV',
+        autodetect=True,
+        skip_leading_rows=1,
+    )
+
+    extract_sales >> load_to_bq

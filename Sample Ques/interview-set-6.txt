@@ -1,0 +1,15 @@
+Below are some of the key questions that were asked in the 1st technical round:
+🔹 GCP & Data Engineering Concepts
+Difference between Dataproc and Dataflow
+Partitioning vs Clustering in BigQuery
+BigQuery architecture overview
+How to handle a case where DAG failed 2 days ago and now is running fine? Should it reprocess historical data?
+How to send success notification after a DAG run?
+🔹 SQL & Querying 
+6. Different joins and situation-based join questions
+7. Set Operators (UNION, INTERSECT, EXCEPT)
+8. When to use ROW_NUMBER, RANK, DENSE_RANK
+9. Writing queries based on real examples and expected output counts
+🔹 Apache Airflow 10. Task dependencies scenario: If we have DAG1 → DAG2 → DAG3, and one fails, how to handle?
+11. Debugging and Logging Airflow DAGs
+12. Airflow Variables and Connections – where and how to use

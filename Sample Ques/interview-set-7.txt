@@ -1,0 +1,109 @@
+10. Scenario: One of your data pipelines failed midway, and while manually triggering it again, all data in a prod table was accidentally deleted.
+Is it possible to recover the deleted data?
+Discuss different approaches.
+
+7. Scenario: You need to extract data from a 20 GB CSV file and load it into a BigQuery table.
+What would be your approach?
+
+13. Scenario: You need to store a file that is accessed only once every six months. Which GCS storage class would you choose and why?
+
+5. Python snippet analysis: understanding output of try–except–else–finally structure
+What would be output of below code:
+
+try:
+ for i in range(1, 6):
+ if i == 5:
+ raise ValueError("Demo Exception")
+ print(i, end=', ')
+except ValueError:
+ print("A", end=', ')
+else:
+ print("B", end=', ')
+finally:
+ print("C")
+
+6. Python – Save files with random numbers
+7. Python – Sort a dictionary based on values
+8. gcloud commands – Create dataset and table in BigQuery
+9. gcloud/gsutil commands – Copy files from local to GCS bucket
+10. Command to move files between GCS object locations
+3. SQL – What happens when we perform LEFT JOIN on a condition 1=1
+4. Explain CROSS JOIN and how it differs from other join types
+6. Python – List and string manipulation exercises
+
+GCP:
+ 1. How can you install Python libraries in Apache Airflow running on GCP?
+ 2. How would you set up and manage a Python environment in GCP for data workloads?
+ 3. Consider a scenario where SCD logic must be applied on multiple tables using a single merge approach without repetitive code. How would you implement this using Airflow?
+ 4. Provide a daily data refresh approach to load only a file data into BigQuery table using the most minimal cost setup and without relying on multiple tools. (Note - Don’t use Apache airflow just 1 or 2 services in GCP)
+
+⭐️Python Programming Questions
+
+Q1: Count frequency of each element in a list without using any built-ins/modules
+
+Input: [1,1,2,3,4,5,3,4,3,5]
+Output: {1:2, 2:1, 3:3, 4:2, 5:2}
+
+Q2: Take 2 user inputs (A & B), divide them and:
+ • print result
+ • handle errors like ZeroDivisionError
+
+Q3: Validate if a string has properly aligned brackets
+Examples:
+ • {{}} → Valid
+ • {}}{ → Invalid
+ • Check for strings like:
+
+"{abc{def}ghi}"
+"{abc{def}}ghi}"
+"{}}{"
+"{{}}"
+"{{abc}{abc}{abc}}"
+
+PySpark Scenario
+
+Given orders & product lists, provide comma-separated products row-wise using PySpark
+
+Order id | Products | date 
+1 | A1,C1,D3 | 20250101 
+2 | A1,C1,D3,X1,R3 | 20250102 
+3 | A1 | 20250102 
+4 | R1,R3 | 20250103 
+5 | R3,R3,R3,R3,R3,R3 | 20250103
+
+2️⃣ BigQuery & SQL
+ • Explain BigQuery architecture in detail
+ • What are different types of tables in BigQuery?
+ • What is an Iceberg table and where is it used?
+ • Query optimization techniques in BigQuery
+ • Row-level and Column-level security in BigQuery
+ • How do Partitioning and Clustering work?
+ • Which data type supports all types in BigQuery?
+ • Explain Nested and Federated queries
+ • SQL: Remove duplicates from a table, find Nth highest salary per department
+
+⸻
+
+3️⃣ Python & Apache Airflow
+ • Explain Generators and Decorators with use cases
+ • Serialization and Deserialization in Python
+ • Difference between Multithreading and Multiprocessing
+ • How to debug a failed task in Apache Airflow
+ • Which Operators have you worked with in Airflow?
+ • Write a sample DAG to extract data and load it into BigQuery
+ • How to trigger one DAG from another?
+ • Python code challenge:
+
+Input - 
+
+"data": {
+ "user": "usernm",
+ "password": "pass",
+ "host": "host_nm",
+ "server": "server_nm"
+}
+
+Expected Output -
+
+user:usernm
+password:pass

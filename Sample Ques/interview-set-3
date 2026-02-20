@@ -1,0 +1,241 @@
+Python Q1: Check if a string is a palindrome
+
+Question:
+Write a program to check if a string is a palindrome.
+Input: madam
+Expected Output: It's a Palindrome
+If not, output: Not a Palindrome
+
+Answer:
+python
+approach-0
+
+def is_palindrome(s):
+    n = len(s)
+    for i in range(n // 2):
+        if s[i] != s[n - i - 1]:
+            return "Not a Palindrome"
+    return "It's a Palindrome"
+
+# Example usage
+input_str = "madam"
+print(is_palindrome(input_str))
+
+approach-1
+
+def is_palindrome(s):
+    n = len(s)
+    rev = ""
+    for i in range(n - 1, -1, -1):
+        rev += s[i]
+    if s != rev:
+        return "Not a Palindrome"
+    return "It's a Palindrome"
+
+# Example usage
+input_str = "madam"
+print(is_palindrome(input_str))
+
+
+✅ GCP: Download file from GCS bucket (Cloud Function skeleton)
+
+Question:
+Write a Python function to download a file from Google Cloud Storage using Cloud Functions.
+
+Answer:
+python
+from google.cloud import storage
+
+storage_client = storage.Client()
+bucket_name = 'your_bucket_name'
+file_name = 'your_file_name'
+
+def gcs_file(cloud_event):
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(file_name)
+
+    content = blob.download_as_text()
+    return content
+
+
+✅ GCP Q: What type of trigger is used for the above Cloud Function?
+
+Question:
+What type of trigger is used for a Cloud Function that downloads a file from a GCS bucket?
+
+Answer:
+*Trigger Type:* Cloud Storage
+*Event Type:* google.cloud.storage.object.v1.finalized
+
+This trigger activates the function when a new file is successfully uploaded ("finalized") in the specified bucket.
+
+---
+
+✅ SQL Q1: Find employees who earn more than their manager
+
+Question:
+Given the employee table:
+
+| emp_id | ename | magr_id | sal |
+|--------|-------|---------|-----|
+| 1      | xyz   | 3       | 200 |
+| 2      | pqr   | 3       | 600 |
+| 3      | abc   | null    | 500 |
+| 4      | efh   | 6       | 800 |
+| 5      | uht   | 6       | 200 |
+| 6      | iut   | null    | 500 |
+
+Write a query to return the employees whose salary is greater than their manager.
+
+Answer:
+sql
+SELECT e.ename, e.sal
+FROM emp e
+JOIN emp m ON e.magr_id = m.emp_id
+WHERE e.sal > m.sal;
+
+
+---
+
+✅ SQL Q2: Count visits per user per day
+
+Question:
+Given a visit log table with columns: user_id, no_of_visits, and date, write a query to get the total visits per user per day.
+
+Example Data:
+
+| user_id |  no_of_visits |   date     |
+|---------|---------------|------------|
+| 1       | 2             | 2024-04-24 |
+| 1       | 1             | 2024-04-25 |
+| 1       | 2             | 2024-04-24 |
+
+Expected Output:
+Group by user and date, with total visits per day.
+
+Answer:
+sql
+SELECT user_id, date, SUM(no_of_visits) AS visit_count
+FROM visits
+GROUP BY user_id, date
+ORDER BY user_id, date;
+
+------------------------------------------------------------------------------------
+
+---
+
+*Q1. Write a Python program to print the following pattern for a given n=4:*
+
+1
+12
+123
+1234
+
+*Answer:*
+python
+n = int(input("Enter the value: "))
+for i in range(1, n+1):
+    for j in range(1, i+1):
+        print(j, end="")
+    print()
+
+
+---
+
+*Q2. What is the difference between the following Python expressions?*
+1. (1,)  
+2. [1]  
+3. [[1,2,3], [1,2,3]]
+
+*Answer:*
+- (1,) → Tuple with one element
+- [1] → List with one element
+- [[1,2,3], [1,2,3]] → 2D List (list of lists)
+
+---
+
+*Q3. SQL: Given the table table1:*
+| add1 | add2 |
+|------|------|
+| null | xyz  |
+| abc  | null |
+
+Write a query to select the first non-null value from add1 or add2.
+
+*Answer:*
+sql
+SELECT COALESCE(add1, add2) AS add FROM table1;
+
+
+*Output:*
+| add |
+|-----|
+| xyz |
+| abc |
+
+---
+
+*Q4. What does the following Airflow schedule_interval represent?*
+
+schedule_interval = "0 8 * * 1"
+
+*Answer:*
+Runs the DAG every *Monday at 8:00 AM*.
+
+---
+
+*Q5. Write a SQL MERGE statement to update existing records by email, and insert if not matched.*
+*Answer:*
+sql
+MERGE INTO target AS t
+USING source AS s
+ON t.email = s.email
+WHEN MATCHED THEN
+  UPDATE SET t.name = s.name, t.emp_id = s.emp_id
+WHEN NOT MATCHED THEN
+  INSERT (emp_id, name, email)
+  VALUES (s.emp_id, s.name, s.email);
+
+
+---
+
+*Q6. What is a federated query?*
+*Answer:*
+A federated query lets you query external data sources *without loading them into the database*.
+
+In BigQuery, you can run federated queries on:
+- GCS files (CSV, JSON, Parquet, Avro)
+- Google Sheets
+- Cloud SQL (MySQL/Postgres)
+- Bigtable, Firestore
+
+*Example:*
+sql
+SELECT * FROM `project.dataset.external_table`;
+
+
+*Benefits:*
+- No need to load data
+- Near real-time access
+- Saves storage cost
+
+*Caveat:*
+Avoid it for frequent or heavy joins. It's slower than querying native BigQuery tables.
+
+---
+
+*Q7. In joins, which table should come first — small or large? Why?*
+*Answer:*
+- In *distributed systems* like Spark, BigQuery: *small table should come first (on the left)*
+
+*Why:*
+- Enables *broadcast join* (avoids data shuffle)
+- Better for *query planner optimizations*
+- Improves *filter pushdown* efficiency
+
+*Example (PySpark):*
+python
+small_df.join(large_df, "id", "inner")  # triggers broadcast join
+
+
+*Note:* For LEFT/RIGHT joins, table order matters logically, so always consider logic first, then optimize.

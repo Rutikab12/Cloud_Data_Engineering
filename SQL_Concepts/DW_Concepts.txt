@@ -4,6 +4,11 @@ Data Warehouse Modelling - Manish Kumar
 Lecture -1:
 
 What is Data Warehouse?
+A Data Warehouse (DW) is a relational database that is designed for query and analysis rather than transaction processing.
+It is a database, which is different from organisation's operational database where frequent changes do not happens.
+It occupies consolidated historical data,which helps the organisation to analyze its business performance, take decisions based on analysis.
+
+
 How it is different from databases?
 How Does it look like?
 
@@ -329,7 +334,7 @@ Rollup,Rolldown
 Drillup,DrillDown
 
 Rollup and Drillup -> Rollup contains summarized data by quarterly,yearly,etc.
-while drilldown is removing granularity from table.
+while drillup is removing granularity from table.
 
 RollDown and DrillDown -->Rolldown is adding other columns to explain granularity.
 while drilldown is taking more columns to explain grain. it's reverse is rollup/drillup.

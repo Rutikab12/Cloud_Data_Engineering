@@ -1,0 +1,354 @@
+Yes, so i have been part of two types of migration, first one was direct migration of alteryx workflows to gcp native tool i.e datafusion.
+and other one was to replace excel heavy operation based on SAP-Callidus tool and move to cloud native solution.
+
+Right now I am part of a team , which is building and automating pipelines, that will help vodafone agents to calculate monthly commission on sales by just entering month.
+
+In short both projects include five stages, which are Ingestion,transformation,reconcillation,calculation and payments
+where we have used gcp tools based on use-cases.
+
+So at the ingestion level, we used cloud functions and pub/sub to detect new files in cloud storage bucket , which will then trigger a dag and ingest data into bq table
+then at transformation layer
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+1.--You have an orders table in BigQuery with millions of rows.
+How do you optimize a query that filters data for the last 7 days?
+			“I use partition pruning by filtering on the partition column using DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) so that only the last 7 days’ partitions are scanned.”
+			
+2.--You have two tables:
+orders(order_id, customer_id)
+customers(customer_id, country)
+Write a query to find total number of orders per country, including customers who have zero orders.
+-
+		“To include customers with zero orders, I will use customers as the left table and left join orders. Then I group by country and count order IDs.”
+		SELECT
+		  c.country,
+		  COUNT(o.order_id) AS total_orders
+		FROM customers c
+		LEFT JOIN orders o
+		ON c.customer_id = o.customer_id
+		GROUP BY c.country;
+
+
+3.--From an orders(customer_id, order_date, amount) table,
+how do you fetch only the latest order for each customer in BigQuery?
+		“I use ROW_NUMBER() partitioned by customer and ordered by order_date descending, and in BigQuery I filter using QUALIFY.”
+		
+
+4.--What is the difference between COUNT(*) and COUNT(column_name)?
+When would this matter in BigQuery?
+		“COUNT(*) counts all rows, including rows where columns contain NULL values.
+		COUNT(column_name) counts only non-NULL values in that column.
+		The difference matters when NULL values are present, not for performance.”
+
+
+5.--You have a BigQuery table partitioned by order_date.
+What happens if you do not use a partition filter in your query?
+		“If a partition filter is not used, BigQuery will scan all partitions, which increases query cost and execution time.
+		If the table is created with require_partition_filter = true, the query will fail unless a partition filter is applied.”
+		
+
+6.--What is the difference between a mutable and immutable object in Python?
+Give one example each related to data engineering.
+		“Mutable objects can be modified after creation, like lists or dictionaries, which we commonly use for building and transforming records in ETL pipelines.
+		Immutable objects cannot be changed, like tuples, which are useful for configuration values or dictionary keys to ensure they are not accidentally modified.”
+		
+
+7.--You have a Pandas DataFrame with 10 million rows.
+What are two things you would do to avoid memory issues while processing it?
+		“First, I would use chunk-based processing using pd.read_csv(..., chunksize=...) to avoid loading all data into memory at once.
+		Second, I would optimize data types by converting columns to appropriate dtypes, like categoricals or smaller numeric types, to reduce memory usage.”
+		
+8.--Interviewer:
+How does Airflow know whether a Dataflow job has succeeded or failed?
+		“Airflow tracks the Dataflow job status by polling the Dataflow API through the Dataflow operator.
+		The task succeeds only when the Dataflow job reaches a terminal state like DONE.
+		If the job fails or is cancelled, the Airflow task is marked as failed.”
+		
+9.--Why did you choose Dataflow instead of PySpark for your pipelines?
+		“We chose Dataflow because it is a fully managed, autoscaling service that supports both batch and streaming pipelines using a unified Apache Beam model.
+		With PySpark, we would need to manage Dataproc clusters, handle scaling, and maintain separate code paths for batch and streaming.
+		Dataflow reduced operational overhead and integrated better with GCP services like BigQuery and Pub/Sub.”
+		
+10.--You have a partitioned and clustered BigQuery table, but queries are still slow and expensive.
+Give three concrete reasons why this might happen.
+		“Even if a table is partitioned and clustered, queries can still be slow and expensive for several reasons:
+		Partition filters are not used, causing BigQuery to scan all partitions
+		Clustering columns are not used in filter or join conditions, so clustering provides no benefit
+		Query patterns like SELECT *, unnecessary joins, or non-selective filters cause excessive data scanning
+		Additionally, data skew or very high-cardinality clustering columns can also reduce clustering effectiveness.”
+		
+11.--Write a BigQuery query to find customers whose order amount increased compared to their previous order.
+		SELECT
+		  customer_id,
+		  order_date,
+		  amount,
+		  LAG(amount) OVER (PARTITION BY customer_id ORDER BY order_date) AS prev_amount FROM bq_stage.orders
+		QUALIFY amount > prev_amount;
+
+12.--Find the total order amount for customers who signed up in the last 30 days,
+including customers who placed zero orders.
+		SELECT
+		  c.customer_id,
+		  c.signup_date,
+		  COALESCE(SUM(o.amount), 0) AS total_amount
+		FROM bq_stage.customers c
+		LEFT JOIN bq_stage.orders o
+		ON c.customer_id = o.customer_id
+		WHERE c.signup_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+		GROUP BY c.customer_id, c.signup_date;
+
+13.--From a table transactions(user_id, txn_date, amount),
+find users whose average transaction amount increased month-over-month.
+	1.Aggregate transactions at user + month level
+	2.Calculate monthly average amount
+	3.Use LAG() to compare with previous month
+	4.Filter users where average increased
+		WITH monthly_avg AS (
+		  SELECT
+			user_id,
+			DATE_TRUNC(txn_date, MONTH) AS txn_month,
+			AVG(amount) AS avg_amount
+		  FROM bq_stage.transactions
+		  GROUP BY user_id, txn_month
+		)
+		SELECT
+		  user_id,
+		  txn_month,
+		  avg_amount,
+		  LAG(avg_amount) OVER (
+			PARTITION BY user_id
+			ORDER BY txn_month
+		  ) AS prev_avg
+		FROM monthly_avg
+		QUALIFY avg_amount > prev_avg;
+
+14.--Write logic (code or steps) to find users who had more than 3 events within any 10-minute window.
+	import pandas as pd
+	df=pd.read_csv('input.csv')
+	df['event_time'] = pd.to_datetime(df['event_time'])
+	window_counts = (
+		df.groupby(
+			['user_id', pd.Grouper(key='event_time', freq='10min')]
+		)
+		.size()
+		.reset_index(name='event_count')
+	)
+	result = window_counts[window_counts['event_count'] > 3]
+
+15.--An Airflow DAG triggers a streaming Dataflow job.
+The DAG succeeds, but after 2 hours the Dataflow job crashes.
+How do you detect this automatically and what actions do you take?
+	“For streaming Dataflow jobs, Airflow success only indicates job submission, not job health.
+	To detect crashes automatically, we rely on Cloud Monitoring alerts on Dataflow job metrics such as job state changes, worker failures, or zero throughput for a threshold duration.
+	When an alert is triggered:
+	The incident is logged and notified via email or PagerDuty
+	The streaming job is restarted using a controlled deployment process
+	Since the pipeline is idempotent, restarting does not cause data duplication
+	Airflow is used only for orchestration; streaming job health is monitored independently.”
+	
+16.--Give two scenarios where Dataflow is a bad choice and explain what you would use instead.
+		“Dataflow is not a good choice when the use case does not justify its complexity or cost.
+
+		First, for small to medium batch workloads with simple transformations, Dataflow can be overkill. In such cases, I would use BigQuery SQL or Data Fusion, which are faster to develop and easier to maintain.
+		Second, when transformations are purely SQL-based and data already resides in BigQuery, using BigQuery views, stored procedures, or scheduled queries is more efficient than running a Dataflow job.
+		Dataflow is best suited for large-scale, complex, or streaming pipelines, not simple ELT workloads.”
+
+17.--You are reading records from a file line by line.
+How do you ensure constant memory usage in Python while processing very large files?
+		I will try to use a for loop directly on the object and will use try exception block for handling errors. 
+		with open(filepath,'r') as file: 
+			for line in file: 
+				print(line.strip())
+				
+18.--You are processing records coming from a file.
+Given a list of order IDs:
+		orders = [101, 102, 101, 103, 102, 104]
+		1st:
+			seen = set()
+			duplicates = set()
+
+			for order in orders:
+				if order in seen:
+					duplicates.add(order)
+				else:
+					seen.add(order)
+
+			print(list(duplicates))
+		2nd:
+			duplicates = [k for k, v in Counter(orders).items() if v > 1]
+			
+19.--Write a BigQuery query to find customers whose order amount increased compared to their previous order.
+		SELECT
+		  customer_id,
+		  order_date,
+		  amount,
+		  LAG(amount) OVER (PARTITION BY customer_id ORDER BY order_date) AS prev_amount FROM bq_stage.orders
+		QUALIFY amount > prev_amount;
+
+20.--Find the total order amount for customers who signed up in the last 30 days,
+--including customers who placed zero orders.
+		SELECT
+		  c.customer_id,
+		  c.signup_date,
+		  COALESCE(SUM(o.amount), 0) AS total_amount
+		FROM bq_stage.customers c
+		LEFT JOIN bq_stage.orders o
+		ON c.customer_id = o.customer_id
+		WHERE c.signup_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+		GROUP BY c.customer_id, c.signup_date;
+
+21.--Write a query to fetch all employees with their department name.
+--Employees without a department should still appear.
+		SELECT 
+		  e.emp_id,
+		  d.dept_name
+		FROM employees e
+		LEFT JOIN departments d
+		ON e.dept_id = d.dept_id;
+
+22.--From a table sales(order_id, product_id, amount),
+--find the total sales per product.
+		SELECT
+		  product_id,
+		  SUM(amount) AS total_sales
+		FROM sales
+		GROUP BY product_id;
+
+23.--From orders(customer_id, order_date, amount),
+--assign a row number per customer ordered by order_date.
+		select customer_id,amount,row_number() over(partition by customer_id order by order_date) as rn from orders
+
+--Using the same orders table,fetch only the latest order for each customer (BigQuery syntax).
+		select customer_id,amount,row_number() over(partition by customer_id order by order_date desc) as rn from orders qualify rn=1
+
+24.--From transactions(user_id, txn_date, amount),
+--calculate the running total of amount per user ordered by txn_date.
+		SELECT
+		  user_id,
+		  txn_date,
+		  SUM(amount) OVER (
+			PARTITION BY user_id
+			ORDER BY txn_date
+		  ) AS running_total
+		FROM transactions;
+
+25.--From employee(emp_id, dept, salary),find the second highest salary in each department.
+		SELECT *
+		FROM (
+		  SELECT
+			emp_id,
+			dept,
+			salary,
+			DENSE_RANK() OVER (
+			  PARTITION BY dept
+			  ORDER BY salary DESC
+			) AS rnk
+		  FROM employee
+		)
+		WHERE rnk = 2;
+
+26.--From orders(customer_id, order_date, amount),
+--find customers whose latest order amount is greater than their average order amount.
+		SELECT customer_id
+		FROM (
+		  SELECT
+			customer_id,
+			amount,
+			ROW_NUMBER() OVER (
+			  PARTITION BY customer_id
+			  ORDER BY order_date DESC
+			) AS rn,
+			AVG(amount) OVER (
+			  PARTITION BY customer_id
+			) AS avg_amount
+		  FROM orders
+		)
+		WHERE rn = 1
+		  AND amount > avg_amount;
+		  
+27.--What is the difference between a list and a tuple?
+Give one real data-engineering use case for each.
+		a list and tuple are data structure in python
+		“List is mutable and used for data transformations.
+		Tuple is immutable and commonly used for configs or dictionary keys.”
+		eg: list=[1,2,3,4]
+		eg: tuple=[(1,2),(2,3)]
+
+28.--Explain shallow copy vs deep copy with a small example.
+		shallow and deep copy are the methods to copy the objects in a python class
+		where shallow copy copies the object and any change in copied object also reflects original object
+		where deep copy copies entire independent copy of object and changes don't reflect in original one
+		import copy
+		copy.copy(obj)
+		copy.deepcopy(obj)
+
+29.--What is a generator in Python?
+Why are generators useful when processing large files from GCS?
+		a generator is related with concept of iterator, where it will continue to give results instead giving only final result at last
+		it used yeild keyword to generate the result
+		while processing large csv files, it is very useful as it will not load entire data at once, instead it will take it in chunks and process faster.
+
+30.--Given a list of integers, return a dictionary with count of each element.
+Given a list of integers, return a dictionary with count of each element.
+		list=[1,1,2,2,3,4]
+		we can use Counter from Collections library
+		count=Counter(list)
+		it will give us a hashmap representing counts of each element
+
+		result = {}
+		for i in lst:
+			result[i] = result.get(i, 0) + 1
+
+31.--What is the difference between a DataFrame and a Series?
+Which one do you use more in real projects and why?
+		difference between dataframe and series is
+		df is 2d and series is a 1d
+		we tend to use dataframe more, as our day to day data is in 2d from of tables
+
+32.--Write Pandas steps (code or logic) to:
+Remove null values
+Group by product
+Calculate total sales per product
+		import pandas as pd
+		df=pd.read_csv('input.csv')
+		df.head(5)
+		--remove null values
+		df = df.dropna()
+		df.groupby('product_id')['sales'].sum().reset_index()
+
+33.--From a DataFrame with order_date,
+extract year and month and calculate monthly order counts.
+import pandas as pd
+import datetime
+		--first extract year and date
+		df['order_date']=pd.to_datetime(df['order_date'])
+		df['year']=df['order_date'].dt.year
+		df['month']=df['order_date'].dt.month
+		df1=df.groupby(['year','month']).size().reset_index(name='count')
+
+34.--Explain the difference between:
+		__init__ is a constructor in python class which initializes the objects
+		while __call__ lets an object behave like a function.”
+
+35.--How do you load a Pandas DataFrame into a BigQuery table?
+Mention key parameters you would care about in production.
+		import pandas_gbq
+		i will use gbq libraray to load it into bq
+		so in production i will try to parameterize the arguments and try to load data into staging tables
+		pandas_gbq.to_gbq(
+		  df,
+		  destination_table=table_id,
+		  project_id=project_id,
+		  if_exists='append','replace','fail'
+		)
+		Ideal Mention:if_exists,schema,chunk size,staging tables		
+		
+36.--A Python script loads data to BigQuery daily.
+The script fails midway and is retried.
+How do you ensure no duplicate records are inserted?
+		first of all load the new_data into a staging table
+		where if staging table only contains duplkicates we can eleminate them at start
+		and then use merge statement to find the changes and append it to main table using a unique business key
+		
+--

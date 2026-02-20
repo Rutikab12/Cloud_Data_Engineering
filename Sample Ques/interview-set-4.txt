@@ -1,0 +1,90 @@
+lst=[1,2,3,4,6,5]
+
+lst = [5, 3, 8, 6, 2]
+
+for i in range(len(lst)):
+    for j in range(len(lst) - 1):  
+        if lst[j] > lst[j + 1]:  
+            lst[j], lst[j + 1] = lst[j + 1], lst[j]  
+
+print(lst)
+
+name  year sal
+Ankit 2021 10000
+Ankit 2022 15000
+Ankit 2023 17000
+Ankit 2024 20000
+ 
+name  year sal   prev_sal
+Ankit 2021 10000 null
+Ankit 2022 15000 10000
+Ankit 2023 17000 15000
+Ankit 2024 20000 17000
+
+select name,year,sal,lag(sal) over(partition by name order by year) as prev_sal
+from table 
+
+*Q8. Python: Count how many times each item appears in a list*
+python
+lista = ['a', 'b', 'c', 'a', 'b', 'c', 'd']
+
+*Expected Output:*
+
+a appears 2 times
+b appears 2 times
+c appears 2 times
+d appears 1 times
+
+*Solution using collections.Counter:*
+python
+from collections import Counter
+
+lista = ['a', 'b', 'c', 'a', 'b', 'c', 'd']
+counts = Counter(lista)
+
+for item, count in counts.items():
+    print(f"{item} appears {count} times")
+
+
+*Alternate using dictionary:*
+python
+def get_count(input_list):
+    count_dict = {}
+    for item in input_list:
+        count_dict[item] = count_dict.get(item, 0) + 1
+    for key, value in count_dict.items():
+        print(f"{key} appears {value} times")
+
+lista = ['a', 'b', 'c', 'a', 'b', 'c', 'd']
+get_count(lista)
+
+
+---
+
+*Q9. PySpark: Read from and write to BigQuery*
+
+*Read from BigQuery:*
+python
+df = spark.read.format("bigquery") \
+    .option("project", project_id) \
+    .option("dataset", dataset_id) \
+    .option("table", table_id) \
+    .load()
+
+
+*Write to BigQuery:*
+python
+df.write.format("bigquery") \
+    .option("project", project_id) \
+    .option("dataset", dataset_id) \
+    .option("table", table_id) \
+    .mode("overwrite") \
+    .option("temporaryGcsBucket", temp_bucket) \
+    .save()
+
+
+---
+
+*Q10. PySpark: Read a CSV file from GCS*
+```python
+df = spark.read.csv(gcs_bucket_path, header=True)
