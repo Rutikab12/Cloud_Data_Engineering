@@ -1,0 +1,158 @@
+"Q1) Write a Python program to get the next day of a given date ?
+
+Example:
+
+Input - 
+Input a year: 2016                                                      
+Input a month [1-12]: 08                                                
+Input a day [1-31]: 23                                                  
+
+Output -
+The next date is [yyyy-mm-dd] 2016-8-24
+
+Q2) Write a Python program to reverse words in a string.
+
+Example:
+
+Input - My Name is Raj
+Output - yM emaN si jaR
+
+Q3) Write a Python program that returns a string sorted alphabetically by the first character of a given string of words ?
+
+Example:
+
+Input - ""Red Green Black White Pink""
+Output - ""Black Green Pink Red White""
+
+Q4) Write a Python function find the length of the longest increasing sub-sequence in a list ?
+
+Example:
+
+Input - [10, 20, 30, 40, 50, 30, 30, 20]
+Output - 5
+
+Explanation - Longest increasing sub-sequence in the said list: [10,20,30,40,50]
+
+Q5) Write a Python program that reads each row of a given csv file and skip the header of the file. Also print the number of rows and the field names ?
+
+Q6) Write a python program to take an email ID as an input and validate it's format ?
+
+Q7) Write a NumPy program to create a 2D array with 1 on the border and 0 inside ? And then find the sum of all the diagonals of the array ?
+
+Q8) Write a python program to read an excel as a pandas dataframe (use attached excel for reference)? And perform following actions ?
+- Ignore non-data rows from the excel (first 3 rows in the attached excel)
+- Treat first data as header
+- Next remove the current header and add a custom header row (give column names as per your choice)
+- generate meta-data of the numeric columns like - min, max, average etc
+- fill null values with average value for ""Age"" field
+- fill null values with value in the previous row for ""Salary"" field
+- merge first and last name columns into one
+- filter out records with Age > 26
+- sort the data based on age
+- drop address field
+
+Q9) Write a Python function to find the kth smallest element in a list 
+
+Example:
+
+Input - k = 5, List - [10,3,5,2,1,6]
+Output - 6
+
+Input - K = 5, List - [10,5,3]
+Output - -1
+
+Q10) Create a JSON file with dummy data based on below given schema. Read it using python and sort the data based on birthday field and write it back to a separate JSON file (make sure to format the output)
+
+[
+   {
+      ""firstName"":""Chandler"",
+      ""lastName"":""Bing"",
+      ""birthday"":{
+         ""day"":""10"",
+         ""month"":""May"",
+         ""year"":""1973""
+      },
+      ""jobTitle"":""DE"",
+      ""gender"":""M""
+   }
+]
+				"				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+
