@@ -290,7 +290,7 @@ And after the expiry , data is not deleted it is aggregated.
 
 one extra table type is
 Factless Fact Table:
-where measurement is not there, but the recors itself is considered as fact.
+where measurement is not there, but the records itself is considered as fact.
 eg: student_Attendance_fact-table, which product doesn't sold at promotional activity,etc.
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Lecture - 9 : Dimension Table (Date Dimension Table)

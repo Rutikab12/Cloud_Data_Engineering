@@ -1,0 +1,42 @@
+Mahindra Group First round (Abhishek Singh)
+
+--Write python program to get below output.
+Python Program
+
+logs= [
+"2026-02-25,INFO,Login",
+"2026-02-25,ERROR,Timeout",
+"2026-02-25,INFO,Logout",
+"2026-02-26,ERROR,DBFailure",
+]
+
+o/p: {
+"2026-02-25": {"INFO": 2, "ERROR": 1},
+"2026-02-26": {"ERROR": 1}
+}
+
+--implement this in sql just to testify logic.
+
+select date_part,log_type,count('log_type') as counter from logs
+group by date_part,log_type;
+
+--Do indexing concept exists in bq ? if not, what other feature bq provides ?
+--Explain what type of operators you have used in airflow.
+--Explain , how will you design dag for below use-case.d
+--fetch data(gcs) --> call python function input to pl --> pl --> storage
+-----------------------------------------------------------------------------------------------------
+LTM first round (Filter Round)
+(HEmand Jagidisan)
+
+--Explain your project in short, your role in it?
+--How the data comes in your project ?
+--How you store it and where ?
+--How did you automate this process ?
+--Why data fusion in your project ?
+--How much volume of data you have worked on ? Is it scheduling job or manual ?
+--Not worked on parquet or flat files or json files, right ? Only excel, csv ?
+--Suppose your merge query fail in production, how you will debug and what can be possible reason for it?
+--What do you think partitioning is important in big data or not ? if yes, why ?
+
+Feedback : You look more on etl developer side and used bq as dimensional table only.
+We have banking client to work on.

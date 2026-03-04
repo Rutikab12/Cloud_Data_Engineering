@@ -154,3 +154,35 @@ select decode(1,1,2,3) from dual;
 Data warehousing
 --Explain factless fact table (does it contain string or numeric values) ? Explain junk dimensioning?
 --What is source and target of your project ? Means explain project in short (that's what i assumed)
+-------------------------------------------------------------------------------------------------------------------
+DataMetica Round-2: (Ravi Shankar)
+
+--You have written, you designed config driven pipelines in data fusion, how did you do that and why it was needed ?
+--You designed ETL/ELT pipelines, let's take below scenario, tell me how will you design pipeline.
+
+Source data is coming from oracle db, I want to load this data into bq target table.
+Consider these as type-1 tables only. Source table have hard delete policy, so when you ingest data in target table how will you
+raise delete_indicator flag if record was delete in source table, considering you are fetching data incrementally from source table
+with the help of create_ts and updated_ts.
+
+Source Table
+Cust_ID, Cust_name , Cust_pref , cust_addr, cust_city, cust_zip, create_ts, Last_updt_ts
+
+Target Table – Hard Delete
+Cust_ID, Cust_name , Cust_pref , cust_addr, cust_city, cust_zip, src_create_ts, src_last_updt_ts, Delete_ind, create_ts, Last_updt_ts
+
+.................................................
+Table A
+
+Name 	Subject	Marks
+Rahul	Math 	98
+Rahul 	English 80
+Ajay	Math	81
+Ajay 	Hindi	59
+Ajay	English 60
+Arun	Math	90
+..................................................
+--names of students not attempt hindi exam
+is below query right or wrong? if right ,why ? if wrong , why ?
+
+select distinct name from A where subject <> "Hindi"
