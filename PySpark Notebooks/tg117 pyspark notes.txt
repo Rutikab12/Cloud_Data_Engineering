@@ -37,4 +37,30 @@ default min Partitions = MIN(DP,2)
 
 and if you are using any file , we do like below.
 arrrdd=sc.read_text(path of file)
+
 arrrdd.getNumPartitions() ==> depends on default block size of system
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Executor memory revision
+
+10% of memory is for memory overhead 
+	--acts as a buffer, it is not part of executor memoery, it is outside of it meaning it is separate
+	--which is responsible for broadcasting , shuffle, ser/deserialization , python worker(env, configs)
+	--you can give huge memory to executor, but if memory overhead is full, it will cause OOM errors.
+	--we ask cluster manager for extra memory overhead space on top of executor memory.
+--------------------------------------------------------------------------------------------------------------------------------------------
+AQE:
+
+--rdd.glom().collect() : it goes to rdd partitions, collects them and give us a list of elements in partitions.
+suppose if you are having a rdd with 2 partitions and you did (shuffle operation)group by and sum of certain column
+then on checking you find number of paritions increased to 200, why ?
+cause shuffle operation has a default partiitions numbers set to 200.
+--so this can lead to have empty partitions in case i need only 4 for my task
+--also it can help when data coming is big.
+so everytime you cannot increse or descrease no of partitions using set property. this was case till spark 2.x
+but when spark 3.x comes in
+	--it introduces Adaptive Query Enabled
+	--which dynamically choose number of shuffle partitions
+	--dynamically coealsce number of shuffle partitions , for cases where one partition is large and taking longer time, while others have
+	finished their work, hence for that we have this property to combine partitions that have finished their work.
+	
