@@ -1,0 +1,25 @@
+HashedIn by deloitte first round
+
+--introduce yourself (Ratnesh Kumar Yadav)
+--have you worked on sql?
+--help me to solve below questions
+
+--give me customer_name,total_order_amount for customers whose total_orders is greater than 10000 and for year 2023 only.
+--give me order_date for latest spending.
+
+--let's start with pyspark questions:
+--explain spark architecture and what are attributes associated with it.
+--is count() good ? what is difference between count() and collect() ?
+--dimensional modelling questions:
+--explain dimension modelling and types of modelling (type-1,type-2,type-3)
+--what is year dimension ?
+--what is fact and dimension tables ? have you designed any ?
+
+Q1:
+--contains duplicates in upstream
+--deuplicate per day
+--save in parquet format partioned by event_date
+df=spark.CreateDataFrame(data,logs_name)
+
+--Q2: top-5 spending users in each country for past 30 days
+user,country,timestamp,spend
