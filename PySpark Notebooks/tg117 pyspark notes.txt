@@ -16,7 +16,7 @@ now , there are couple of options for a spark cluster
 3)kubernetes
 I can submit my application to any of above cluster manager and run.
 and spark application program will have all the configurations needed to run it on cluster , defined by driver.
-
+----------------------------------------------------------------------------------------------------------------------------------------------------
 --RDD
 a distributed dataset which is resilient, meaning able to recover itself in case of failure.
 which is immutable , low level api in spark, meaning it is closer to spark cluster.
@@ -37,10 +37,141 @@ default min Partitions = MIN(DP,2)
 
 and if you are using any file , we do like below.
 arrrdd=sc.read_text(path of file)
-
 arrrdd.getNumPartitions() ==> depends on default block size of system
 
---------------------------------------------------------------------------------------------------------------------------------------------
+RDD do not store any data , it is a logical process, through which data flows.
+----------------------------------------------------------------------------------------------------------------------------------------------------
+--job,stages and task
+
+number of actions = no og jobs in spark application
+then job is further divided into stages, where all narrow transformation will be in one stage and if we encounter wide transform, new stages is created.
+number of tasks in stages = number of partitions
+
+--deployment modes
+
+client mode --> where driver program runs in the client machine from which you submit spark application.
+				eg: testing,dev phase, pyspark shell and notebook
+cluster mode --> where driver program also runs inside a worker node in cluster you submit by spark submit command from client machine.
+				eg: production mode, for ease of connection between driver and executor.
+----------------------------------------------------------------------------------------------------------------------------------------------------
+--architecture in detail (client and cluster mode)
+
+--first define cluster configurations by spark-submit command, cluster manager gives these resources, then driver process starts
+--then application execution starts, it read program code in driver
+--driver sends this code to DAG scheduler , it converts code into stages.
+--these stages along with no of partitions goes to task scheduler, which eventually connects with cluster managers and ask for resources to execute code on each partition of data
+--executors executes these partitions and sends signals back to driver program.
+--unless an until stage-0 is not completed, stage-1 tasks will not execute.
+--once all the stages are executed, action is also executed by executor
+--then deallocation of resources happens and spark program is stopped.
+
+--notes
+dag scheduler and task scheduler are the part of driver only.
+multiple executors of different applications can run on same worker. it's like running firfox and chrome on single computer
+but each application and executors are exclusive to that application only. you cannot work for tcs and infosys at same time
+also multiple executor of same application can run inside one worker machine.
+at a time there will never be execution of tasks from different stages. only after completion of one stage, other's stage task will run.
+stages are executed sequentially always
+
+--for cluster mode, application master and driver will run inside any worker node. That's the only difference.
+
+Driver
+	--master process of spark application
+	--allocates tasks and monitors them
+	--tracking tasks progress
+	--(in some cases) results are travlled back to driver
+
+Executor
+	--reading data from source
+	--performing data processing tasks
+	--writing data to destination
+	--update state to driver
+
+Cluster Manager
+	--allocate and deallocate resources for application
+	--pluggable component, meaning it can be any YARn,kubernetes
+	--handling failures
+	
+----------------------------------------------------------------------------------------------------------------------------------------------------
+Low Level API of spark
+meaning they are part of sparks core execution engine
+RDD
+Broadcast
+Accumulator
+
+High level API
+Dataframe
+Dataset
+
+Distributed Shared Variable
+Broadcast Variable : used for reduction of data movement, where data is sent and stored in executors memory. instead of always asking to driver for it.
+	eg: broadcast(country_map)
+	read only variable, but immutable
+	use: when python variables are required in rdd code.
+	also when we need to avoid join operation where one input is large and other one is small
+	no hard limit size ofr broadcast variable
+	However to select a broadcast variable we need to consider: cluster configuration and size of data
+	broadcast_variable.unpersist() will remove broadcast variable from Driver and Executor RAM
+	LRU  (Least Recently Used) cache, where sparks removes it automatically once work is done.
+Accumulator : used for counting purpose, when you want to count how much warnings and errors you got in logs
+	it is mutable, cause it is updating in runtime for each logs
+	
+you don;t use python variables in pyspark code, cause it affects spark application performance.
+----------------------------------------------------------------------------------------------------------------------------------------------------
+Spark SQL
+
+nowadays market uses sparksql syntax and its api's like df,ds
+
+dataframe:
+strcutured, in memory, resilient, distributed, lazy evolution and has schema
+df are mutable, like python variable, throw error only in runtime. not during compile type.
+
+pyspark do not support dataset, but scala do
+
+DF:
+	--every row of df is spark's row object
+	--df does not have compile time type safety
+	--if structured transformation is applied on df, new df will be returned
+	--df has better performance than ds
+
+DS:
+	--every row is ds is an object of class which we have defined for it
+	--ds has compile time type safety with RDD transformations
+	--if strcutured transformation is applied on ds, new df will be returned
+	--to maintain tupe safety , perform transformations on ds.
+	--as it involves encoding and decoding, it is slow.
+----------------------------------------------------------------------------------------------------------------------------------------------------
+Catalyst Optimizer
+
+if you are performing structured transformations on DF, catalyst optimizer comes into picture.
+
+so catalyst optimizer comes with certains plans:
+1)un-resolved logical plan:
+if you are reading data from structured df, then it checks for schema defined locally.
+if you are reading data from a spark sql query, then it goes to catalog, where tablename and its column types are defined.
+
+at last once the optimized logical plan is made and best cost model or physical plan is selected, then it passed on to RDD internally and passed to the spark core engine.
+it's just that, all things are done by spark only.
+----------------------------------------------------------------------------------------------------------------------------------------------------
+spark context : used in spark 1.x, where we need to declare context for sql support, streaming support and spark.
+and we do not have df support here, we will have to do all the operations on the rdd itself, that can be lengthy.
+--spark context is responsible for communication in between cluster manager,dag scheduler, task scheduler and driver (where is exists)
+--handles low level api's
+--only spark context can exists per application, because it's an iterface for communication between driver and cluster manager, hence it will create chaos if multiple contexts exists
+
+spark session : used from spark 2.x , where we don't need to create separate sessions, we create one spark session and it gives us access to spark features.
+here we have df support, hence it is faster also.
+--we can have multiple spark sessions for a single application, but one spark context only
+--every spark session have its own catalog.
+--we can set up different properties , configurations for each spark session
+
+both session and context exists in driver only
+
+temp view : can be accessed by repsective spark session
+
+global temp view : can be accessed by any spark session available is application
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
 Executor memory revision
 
 10% of memory is for memory overhead 
@@ -63,4 +194,3 @@ but when spark 3.x comes in
 	--which dynamically choose number of shuffle partitions
 	--dynamically coealsce number of shuffle partitions , for cases where one partition is large and taking longer time, while others have
 	finished their work, hence for that we have this property to combine partitions that have finished their work.
-	
