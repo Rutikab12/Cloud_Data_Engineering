@@ -210,7 +210,7 @@ Types of Incremental Loading:
 1. Append : appending new data with exisiting data at last.
 2. In Place Update : overwriting the exisiting data with new ones directly at same place
 3. Complete Replacement : replacing whole data with existing data at one go.
-4. Rolling append :Suppose we are inserting data every month and have restricitons that we can keep data on only 24 months.
+4. Rolling append :Suppose we are inserting data every month and have restricitons that we can keep data of only 24 months.
 If now one month of new data comes, it will get append at last but due to restriction we have to delete existing data of 1 month.
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -226,7 +226,7 @@ contains context of the numbers inside fact table
 moto:
 find out which products selling at which store under what promotional activity.
 
-so fact and dimension tables can be linked to each other for business use cases, bt primary key -Foreign Key relationship.
+so fact and dimension tables can be linked to each other for business use cases, by primary key -Foreign Key relationship.
 
 Dimension Modelling Fundamentals:
 
@@ -259,15 +259,43 @@ Lecture - 8 : Types of Facts in Fact table
 
 What is additivity?
 simple adding, can add facts along any dimension
+An additive fact is a measure that can be aggregated across all dimensions using SUM.
 
 What is semi-additive?
 can add along some dimension but not all.
 eg: deriving quantity of products available at one store on some day? possible
 but total quantity in inventory cannot be determined by these quantity available at each store, hence semi-additive
+A semi-additive fact is a measure that can be aggregated across some dimensions but not across the time dimension.
+here we use functions like lag,avg instead of sum.
 
 What is non-additive?
 can't add facts along any dimension
+A non-additive fact cannot be aggregated using SUM across any dimension.
 
+| Fact Type     | Aggregation Behavior          | Example      |
+| ------------- | ----------------------------- | ------------ |
+| Additive      | can sum across all dimensions | sales amount |
+| Semi-Additive | cannot sum across time        | bank balance |
+| Non-Additive  | cannot sum anywhere           | percentage   |
+
+Real Data Warehouse Example
+
+Sales Fact
+| date | product | sales |
+Sales = additive
+
+Inventory Fact
+| date | product | stock |
+Stock = semi-additive
+
+Conversion Rate
+| campaign | conversion_rate |
+Conversion rate = non-additive
+
+One-Line Memory Trick
+Additive → sum everywhere
+Semi-additive → sum except time
+Non-additive → never sum
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Lecture - 8 : Types of Fact table
 
@@ -282,6 +310,12 @@ eg: order delivery
 
 What are the challenges with periodic snapshot table?
 
+| Feature | Periodic Snapshot          | Accumulating Snapshot   |
+| ------- | -------------------------- | ----------------------- |
+| Purpose | Track metrics over time    | Track process lifecycle |
+| Updates | Insert new row each period | Update same row         |
+| Example | daily sales                | order lifecycle         |
+
 
 Periodic Snapshot table:
 eg: inventory table
@@ -292,6 +326,15 @@ one extra table type is
 Factless Fact Table:
 where measurement is not there, but the records itself is considered as fact.
 eg: student_Attendance_fact-table, which product doesn't sold at promotional activity,etc.
+A factless fact table is a fact table without numeric measures.
+It only records that an event happened or a relationship exists.
+
+So instead of storing metrics like sales_amount, it stores dimension keys only.
+| Feature  | Fact Table    | Factless Fact |
+| -------- | ------------- | ------------- |
+| Measures | Yes           | No            |
+| Purpose  | Store metrics | Store events  |
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Lecture - 9 : Dimension Table (Date Dimension Table)
 
@@ -333,11 +376,12 @@ Rollup,Rolldown
 
 Drillup,DrillDown
 
-Rollup and Drillup -> Rollup contains summarized data by quarterly,yearly,etc.
-while drillup is removing granularity from table.
+Rollup and Drilldown> Rollup contains summarized data by quarterly,yearly,etc.(detailed to summary)
+while drilldown is removing granularity from table.(summary to detailed data)
 
-RollDown and DrillDown -->Rolldown is adding other columns to explain granularity.
-while drilldown is taking more columns to explain grain. it's reverse is rollup/drillup.
+
+RollDown and Drillup-->Rolldown is adding other columns to explain granularity.
+while drillup is taking more columns to explain grain. it's reverse is rollup/drillup.
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Lecture - 11 : Types of Dimensions
@@ -370,6 +414,32 @@ if we stored these values in different tables we will unnecessary increase stora
 Hence instead of keeping them in separate table we merge them in one table, as it is less useful, and will hold unwanted space in fact table if added.
 This is individual table is called as junk dimension table.
 
+
+--A degenerate dimension is a dimension attribute stored directly in the fact table, not in a separate dimension table.
+Usually used for transaction identifiers.
+Example — Order Number
+Typical sales schema.
+
+fact_sales
+------------
+order_id
+product_key
+customer_key
+date_key
+quantity
+sales_amount
+
+Here:
+order_id is a degenerate dimension.
+Why?
+Because:
+it has no additional attributes
+creating a dimension table for it is unnecessary
+
+--What is Year Dimension?
+A time dimension table that stores calendar attributes.
+| date_key | year | quarter | month | week |
+| -------- | ---- | ------- | ----- | ---- |
 
 -Slowly changing Dimension
 later 
@@ -431,6 +501,8 @@ larger in size and hence cosume more memory.
 used in fact and dimension table in DW
 it is guranteed to be unique key
 sequential numeric digit : indexing managed in better way
+
+--candidate key: key that can be primary key eg: phone|email
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Lecture - 14 : Slowly Changing Dimensions

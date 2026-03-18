@@ -1,4 +1,4 @@
-HashedIn by deloitte first round
+HashedIn by deloitte - R1
 
 --introduce yourself (Ratnesh Kumar Yadav)
 --have you worked on sql?
@@ -23,3 +23,154 @@ df=spark.CreateDataFrame(data,logs_name)
 
 --Q2: top-5 spending users in each country for past 30 days
 user,country,timestamp,spend
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+HashedIn by deloitte - R2
+(Manvi Gupta)
+--introduce yourself
+--let me know what services will you use for below scenario to design pipeline
+--iot sensor device streams million records per second into source area
+--i want to put these records into table and store for historical purpose
+--also give me data model for storage part
+
+	--pub/sub
+	--staging table
+	id,device_type,attributes,load_timestamp
+	--pyspark transformation dataproc
+	--target table
+	id,device_type,attributes,load_date,end_date,is_current
+	--airflow dag
+--how will you optimize the approach for cost and storage effectiveness?
+
+--do you have any idea about datawarehouse and datalakes ?
+
+--another scenario like we have
+--design a data platform for structured,semi-structured data
+--so end user can perform analysis queries on data
+
+--google cloud storage bucket for input storage 
+--load job query using bigquery if no transformations needed
+--if needed, pyspark code via dataproc
+--load data to bq main table
+--orchestrate through airflow
+--either form views or basis on access for end user
+
+--let's talk about airflow
+--give me code for sample dag and explain
+from airflow import DAG
+
+def data_fetch(**kwargs):
+	pass
+
+with DAG(
+dag_id='sample_Dag',
+description='',
+start_date=datetime(2026-17-03),
+schedule_interval='@daily'
+catch_up=false
+) as dag:
+
+ tasks
+
+--what are the python custom operators in airflow can you design one?
+data_fetch=PythonCustomeOperator(
+	task_id='data_fetch',
+	python_callable='data_fetch',
+	op_kwargs={
+	file_name='',
+	}
+)
+
+--what are the different types of database services gcp offers?
+--what is persistent storage and local ssd storage types ?
+--do you know about snowflake, databrics, aws, azure, gcp ?
+--do you know about data modelling concepts like star and snowflake schema with example for each?
+--what are slowly changing dimensions?
+--how do you ensure security in cloud sql database ?
+--what are the read_replicas in cloud sql?
+--where is backup for the cloud sql ?
+--what if accidentally db got deleted in cloudsql?
+--what are the different types of indexes ?
+--any no sql database in gcp ? have you worked on any ?
+--query engine inside cloud sql ?
+--how will you perfrom query optimization inside cloudsql ?
+
+
+--let take another scenario, where I want to merge incoming dim table updates and
+--old records through start and end_date
+--give me query
+
+merge into target_table as t
+using dim_table as s
+on t.key=s.key
+when matched and s.start_date > t.start_date then
+update set
+	end_date=current_date(),
+when not matched then
+insert(fields from target table)
+values(fields from source with latest start_date and end_Date as none)
+
+
+--let solve pyspark problems
+--word count using map and reduce functions
+df=spark.read_csv(file_path)
+df1=df.map(lambda x:x.split(',')) #[p,j,l]
+df2=df1.flatmap()      
+df3=aggregate()
+
+
+--sales in df, we have a sales df, I want to group by order_date and sum total amount
+--and store it in key-value format
+order_id,date,amount
+op in dictionary date as key, total-mt value
+
+def to_dict_format(input):
+ result={}
+ #[(date,amount)]
+ for date,amount in input:
+   if date in result:
+     result[date].append(key) 
+ else:
+   result[date]=[amount]
+return result
+{('date':1,2)
+}
+
+grp=df.groupBy('date').sum('amount') 
+grouped=udf(to_dict_format,stringType())
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+Deloitte USI - R1
+(Pritam Bose)
+
+--introduce yourself
+--do you know difference between type-1,type-2 and type-3, explain with example
+--tell me difference between count(*),count(1) and count(0) in bigquery
+--arrange below sql keywords in order of their execution
+FROM
+WHERE
+GROUP BY
+WINDOW FN/QUALIFY
+HAVING
+SELECT
+DISTINCT
+ORDER BY
+LIMIT
+--give query for : give me id for 5th highest salary , table_name=company, id and salary in nested field employee {id,salary}
+--give me python function for, read a python file, return count of word 'Shiva' in it and if no count of shiva return 0.
+
+
+select e.id
+from company
+unnest employee as e
+qualify (row_number() over(order by salary desc))=5;
+
+--
+
+def read_Shiva(file_name):
+	count=0
+	with open(file_name,r) as f:
+	  for line in f:
+    		if 'shiva' in line:
+  		   count+=1
+	  return count
+	return 0

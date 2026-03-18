@@ -57,7 +57,8 @@ cluster mode --> where driver program also runs inside a worker node in cluster 
 --architecture in detail (client and cluster mode)
 
 --first define cluster configurations by spark-submit command, cluster manager gives these resources, then driver process starts
---then application execution starts, it read program code in driver
+--then application execution starts, it read program code in driver(spark context)
+--driver convert this code to DAG (logical execution plan).
 --driver sends this code to DAG scheduler , it converts code into stages.
 --these stages along with no of partitions goes to task scheduler, which eventually connects with cluster managers and ask for resources to execute code on each partition of data
 --executors executes these partitions and sends signals back to driver program.
@@ -109,7 +110,7 @@ Broadcast Variable : used for reduction of data movement, where data is sent and
 	read only variable, but immutable
 	use: when python variables are required in rdd code.
 	also when we need to avoid join operation where one input is large and other one is small
-	no hard limit size ofr broadcast variable
+	no hard limit size for broadcast variable
 	However to select a broadcast variable we need to consider: cluster configuration and size of data
 	broadcast_variable.unpersist() will remove broadcast variable from Driver and Executor RAM
 	LRU  (Least Recently Used) cache, where sparks removes it automatically once work is done.
@@ -138,7 +139,7 @@ DS:
 	--every row is ds is an object of class which we have defined for it
 	--ds has compile time type safety with RDD transformations
 	--if strcutured transformation is applied on ds, new df will be returned
-	--to maintain tupe safety , perform transformations on ds.
+	--to maintain type safety , perform transformations on ds.
 	--as it involves encoding and decoding, it is slow.
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 Catalyst Optimizer

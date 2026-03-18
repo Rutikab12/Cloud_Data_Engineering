@@ -2,6 +2,7 @@ Interview Questions on Airflow for 3.5 Years of experience
 [GCP Data Engineer, Data Engineer]
 Complexity - Low
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 1. What is Apache Airflow, and what is its primary use?
 	Airflow is an open-source platform for programmatically defining, scheduling, and monitoring workflows. 
 	Its primary use is to manage and automate data pipelines.
@@ -244,6 +245,60 @@ Complexity - Low
 		response=requests.get('https://api.example.com/data')
 		with open('/tmp/data.json', 'w') as f:
         f.write(response.text)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Airflow Architecture explanation:
+
+we create a DAG with python code.
+this dag is submitted to dag folder, where all python scripts lies.
+Now comes in scheduler:
+	--it parses dag,check syntaxes,check dependencies and schedules tasks for execution in queue.
+	--also passed on this information to metadata db, which can be mysql/pgsql database.
+Metadata db:
+	--contains all the information of dags, status of task and dags, etc
+Executor:
+	--queued tasks from scheduler goes to executor which helps to execute them.
+	--executor is just like a strategy , which has configurations to run the tasks in defined manner.
+	--eg, which executor to use
+Worker:
+	--responsible for executing tasks
+	--have executors in them like sequential,local,celery and kubernetes.
+	--also memory and all the params. Once done, send status back to executor and metadata db
+At last, user can see his dag status on web server with the help of metadata db.
+
+
+
+Queue in airflow:
+
+queue is a task attribute, you can set it per task.
+
+if you have mutliple queues then you also need to have multiple workers.
+
+only some executors honor queues:
+	--celeryexecutor : fully supports queues
+	--celerykubernetesexecutor: also uses qurues, and a special queue name decides whether a task goes to celery or to kubernetes
+	--LocalExecutor/SequentialExecutor/Pure KubernetesExecutor: the queue field is effectively ignored, you route with other mechanisms (eg: pod overrides on K8)
+	
+think of queue as an "address label" on a task telling which group of workers should pick it up.
+
+why we use multiple queues:
+	--queues let you separate workfloads so the right workers pick the right tasks
+	--hardware aware routing:
+		send heavy memory jobs to high_mem , gpu jobs to gpu
+	--Network or dependency isolation:
+		tasks that need VPC access vs public internet
+	--Priority separation:
+		keep "urgent" or "interactive" tasks on a dedicated queue with its own workers.
+		
+queues vs pools vs priority
+	
+	--queues: who runs it(on which worker)
+	--Pool: how many at once (capacity guardrail across any executor). Assign tasks to a pool and give the pool N slots; tasks will wait when the pool is full. Pools are configured in the UI and honored by the scheduler.
+	--Priority Weights: Which queued tasks goes first when slots free up (sceduler side ordering, not a celery concept)
+	
+how to run:
+	--you defined queue name you defined in task and the mention it in airflow config for worker.
+	like this command:
+	airflow celery worker --queues high_mem -n high_worker		
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Low Complexity Questions
 
@@ -530,3 +585,4 @@ Logging & Monitoring DAGs in Composer (Cloud Logging integration)
 Using GCP-specific operators: GCSToBigQueryOperator, DataflowTemplateOperator, BigQueryInsertJobOperator
 
 IAM roles required for Composer to interact with other GCP services
+---------------------------------------------------------------------------------------------------------------------------------------------------------
