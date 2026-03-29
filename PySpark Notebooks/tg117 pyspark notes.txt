@@ -23,7 +23,8 @@ which is immutable , low level api in spark, meaning it is closer to spark clust
 talking about distributed, it will create partitions of data based on the default block size of source systems, it is reading from.
 eg: reading from local file system, block size is 32MB,
 	reading from hdfs , block size is 128MB,
-	reading from s3 bucket, block size is 64MB
+	reading from s3 bucket, block size is 64MB,
+	reading from gcs bucket, block size is 64MB
 
 how you create rdd's.
 if you are creating rdd from a python variable, we use parallelize
@@ -195,3 +196,4 @@ but when spark 3.x comes in
 	--which dynamically choose number of shuffle partitions
 	--dynamically coealsce number of shuffle partitions , for cases where one partition is large and taking longer time, while others have
 	finished their work, hence for that we have this property to combine partitions that have finished their work.
+-------------------------------------------------------------------------------------------------------------------------------------------

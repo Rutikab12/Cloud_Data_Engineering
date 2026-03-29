@@ -80,6 +80,8 @@ data_fetch=PythonCustomeOperator(
 	}
 )
 
+--how do you create dynamic dags for different processes ?
+
 --what are the different types of database services gcp offers?
 --what is persistent storage and local ssd storage types ?
 --do you know about snowflake, databrics, aws, azure, gcp ?
@@ -93,6 +95,7 @@ data_fetch=PythonCustomeOperator(
 --any no sql database in gcp ? have you worked on any ?
 --query engine inside cloud sql ?
 --how will you perfrom query optimization inside cloudsql ?
+--does it provide high availability ?
 
 
 --let take another scenario, where I want to merge incoming dim table updates and
@@ -137,7 +140,46 @@ return result
 
 grp=df.groupBy('date').sum('amount') 
 grouped=udf(to_dict_format,stringType())
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+HashedIn R3 (Managerial)
+(Ayush Mantry)
 
+--introduce me in a way , which is not mentioned in resume?
+--have you used any LLM ? Can you explain me AI and LLM as I come from non'tech background.
+--what is different types of machine learning methods ? explain them if possible.
+--have you lead team ? how much size and how you handled team ?
+--you will join here as senior data engineer with 3-4 persons to lead, can you manage and how ?
+--you have been working with Vodafone from last 3.5 years, it's huge time , what are your learnings there ?
+--where do you see yourself after 4 years ?
+--what is your motive to join hashedin ?
+--what are the things that excites you most to join hashedin ?
+--tell me 3 qualities of yourself ?
+--suppose you are team lead and all of your team members including you are engaged in work, one of team member suddenly goes on leave on friday. You have work to deliver on tuesday.
+all your team bandwidth is full ? How will you manager these situation?
+--suppose one of your team member has newly joined and is absent in team meetings frequently , not completing work on time? How will you handle this situation?
+--Suppose you join here and you are required to learn AWS/Azure , as you come from GCP background, how will you manage and match with team's speed ?
+--What are the things you have to keep in mind , when you work in a team environment ?
+--Tell me size of your team , how sdlc is managed , how work is assigned to team members ?
+
+extra ques:
+--lets say you have a conflict with team member, how will you deal with this ?
+--tell me about a time when you made a mistake at work . How did you resolve the problem, and what did you learn from your mistakes?
+--describe an occasion when you fail at a task . What did you learn from it ? or tell me about a time when you missed the deadline, what happend and how did you handle it.
+--tell me about a time when you took the initiative in your career ? what was your motivation for doing so ?
+--tell me about a time when you were asked to do something you had never done before ? How did you react ? What did you learn ? or Have you handled a difficult situation ? How ?
+--Why are you looking for a change ?
+--What to do if your team is not listening to your ideas ?
+--When you leading a team how do you handle the conflicts within team ?
+--How do you stay up-to_date with the latest technological advancements?
+--What if your manager favors one of your teammates and everyone else is upset — how would you handle it?
+--If one team member is struggling with tasks and affecting others, what would you do?
+--Cultural fit for HashedIn’s engineering environment
+Some of the questions included:
+	Walkthrough of my recent project
+	How I debug production bugs
+	Times I worked under pressure
+	Conflict resolution within a team
+	Motivation for switching roles
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 Deloitte USI - R1
 (Pritam Bose)
@@ -174,3 +216,4 @@ def read_Shiva(file_name):
   		   count+=1
 	  return count
 	return 0
+---------------------------------------------------------------------------------------------------------------------------------------------------------

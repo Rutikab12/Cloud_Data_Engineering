@@ -53,6 +53,7 @@ with recursive numbers as
 select * from numbers;
 ------------------------------------------------------------------------
 eg: find the hirerachy of employees under a given manager 'Ashana'
+all hierarchy under ashana
 
 with recursive emp_hierarchy
 	(
@@ -62,14 +63,18 @@ with recursive emp_hierarchy
 		join emp_details E
 		ON H.id = E.manager_id
 	)
+select * from emp_hierarchy;
 	
---
+--lvl is just to see , how much levels are there beyond ashana. 1,2,3 etc
+
 select H2.id as emp_id,H2.name as emp_name, E2.name as manager_name, H2.lvl as level 
 from emp_hierarchy H2
 join emp details E2
 ON E2.id=H2.manager_id;
 -------------------------------------------------------------------------
 eg:Find the hirerachy of managers for a given employee "David"
+only managers who has david under them
+
 
 with recursive emp_hierarchy
 	(

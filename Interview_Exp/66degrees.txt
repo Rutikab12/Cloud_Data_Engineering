@@ -1,0 +1,35 @@
+66degrees R1 (Manish Patil)
+
+--Introduce yourself ?
+--What are the projects you have worked till now , explain them in short ?
+--What are the different gcp services you used ?
+--Let's move to bq, what is bigquery ? 
+--what was source and destination in your pipeline ? explain ingestion process used in your project ?
+--why dataflow at ingestion ? did you use template or custom code ?
+--how will you optimize bq table ? do you select columns by name or just do select * ?
+--why not use select * ? can you explain me what happends behind the scene in bq ?
+--what is sharding ? have you ever used bq agents ? 
+--you said you used hybrid data modelling , explain that ? what are the slowly changing dimensions ? and its types ? which one do you used in your project ?
+--can you move data from one bq region to another region ?
+--what are the similarities in dataflow and bq architecture or pyspark and bq architecture ?
+--what do you mean by nodes , when you say distributed processing ?
+--let's move to airflow, have you ever written airflow dag ?
+--what are the different operators you have used till now ?
+--what is scheduling , infact can you orally explain me how you define dag and what are the important points to consider while creating it ?
+--what is zombie task ? how to resolve that and find reason why it happend ?
+--let's move to dataproc , at which stage you used dataproc in your project ?
+--what are the machine types you used ? do you used pyspark scripts or jupyter notebook  for submitting codes ?
+--have you heard about lazy evaluation ? how will you relate it with bq ?
+--what is data skewness ? explain it.
+--have you ever faced data skewness ? how you identified it and resolved ?
+--what is broadcasting and salting techniques you used ?
+--using pyspark where you stored data ? i mean what was your destination ?
+--you mentioned you have strict data type and column check at ingestion layer in dataflow ? what is instead of 10 columns, 15 columns comes in ? and you need to store them as destination
+also ? how will you manage this ? (allowed field addition)
+--suppose you have to read 10GB file using python pandas , how will you read it ?
+--suppose you have to read 100 files at once , how will you read ?
+--what are the other way of storing data in bq , other than automated ingestion ?
+--what are other database services available in gcp ?
+--suppose you have data in 10 different regions in rdbms ? what is the service in bq to read data from multiple regions and store it in bq ?
+--do you hard failed the pipeline when schema and data type is mismatched or keep it running ?
+--do you have any questions ?
