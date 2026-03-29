@@ -32,4 +32,5 @@ also ? how will you manage this ? (allowed field addition)
 --what are other database services available in gcp ?
 --suppose you have data in 10 different regions in rdbms ? what is the service in bq to read data from multiple regions and store it in bq ?
 --do you hard failed the pipeline when schema and data type is mismatched or keep it running ?
+--what is PII data ? how do you managed it is not exposed ? which encryption method you used ?
 --do you have any questions ?

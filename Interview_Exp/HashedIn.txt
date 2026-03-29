@@ -146,6 +146,7 @@ HashedIn R3 (Managerial)
 
 --introduce me in a way , which is not mentioned in resume?
 --have you used any LLM ? Can you explain me AI and LLM as I come from non'tech background.
+--also what are the advantages and disadvantages you feel while using AI in your day to day work.
 --what is different types of machine learning methods ? explain them if possible.
 --have you lead team ? how much size and how you handled team ?
 --you will join here as senior data engineer with 3-4 persons to lead, can you manage and how ?
